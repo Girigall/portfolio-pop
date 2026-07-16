@@ -61,7 +61,7 @@ Full account numbers are passed to tools unmasked; UI always masks to last 4.
 | closed_at | ISO 8601 | `2026-07-10T18:55:54Z` | |
 | account | string | `2005` | last-4 |
 | symbol | string | `SPXW` | empty → `UNKNOWN` |
-| asset_class | enum | `option` / `stock` / `unclassified` | heuristic v1; exact post-pipeline |
+| asset_class | enum | `option` / `stock` / `unclassified` | **open enum by design** — `crypto`, `futures`, `bond`, `event_contract` etc. add as values, never as schema migrations. The portfolio scales to any asset class organically (Pop's directive, 2026-07-16) |
 | quantity | decimal | `3` | |
 | close_price | decimal | `-10` | raw from connector, quirks preserved |
 | realized_gain | decimal | `405.00` | |
