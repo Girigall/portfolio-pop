@@ -68,7 +68,10 @@ Full account numbers are passed to tools unmasked; UI always masks to last 4.
 | strategy | string | `PCS` | filled when matched to remembered structure, else blank |
 | strikes | string | `7270/7260` | same condition |
 | expiry | ISO date | `2026-07-10` | same condition |
-| source | enum | `connector` / `csv_backfill` | provenance always recorded |
+| source | enum | `connector` / `csv_backfill` / `validator` | provenance always recorded |
+| broker | enum | `robinhood` | portability: schema is broker-agnostic; new brokers (e.g., tastytrade) add rows, never migrations |
+| thesis | string | `IV elevated, support held` | F9 journal capture; blank for auto-ingested rows |
+| vix_at_entry | decimal | `15.57` | F9 capture (legacy schema field) |
 
 ### 4.2 `positions_snapshots.csv` (weekly append)
 `snapshot_date · account · kind(stock/option_leg) · symbol/chain · option_id · side · qty · avg_price · strike · put_call · expiry · mark/last · multiplier`

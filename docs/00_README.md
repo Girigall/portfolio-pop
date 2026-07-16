@@ -4,11 +4,13 @@
 
 | # | Doc | Folder | What you're approving | Read time |
 |---|---|---|---|---|
-| 1 | **PRD** | `01_product/` | WHAT we build: features, goals, non-goals, correctness rules | ~8 min |
-| 2 | **TDD** | `02_technical/` | HOW it works: architecture, algorithms (grouping, max loss), archive job | ~10 min |
-| 3 | **DATA SPEC** | `02_technical/` | The contracts: connector fields, archive file schemas, golden numbers | ~7 min |
-| 4 | **DESIGN SPEC** | `03_design/` | HOW it looks: tokens, layout, components, states — PI's looks, our math | ~7 min |
-| 5 | **TEST PLAN** | `04_quality/` | HOW we prove it: reconciliation to the cent, BWB grouping, history-never-shrinks | ~5 min |
+| 1 | **PRD** | `01_product/` | WHAT we build: features (incl. F9 pre-trade validator), goals, non-goals, broker portability | ~9 min |
+| 2 | **STRATEGY RULEBOOK** | `01_product/` | YOUR trading rules, canonical — includes 3 open questions needing your ruling (§6) | ~5 min |
+| 3 | **TDD** | `02_technical/` | HOW it works: architecture, algorithms (grouping, max loss, validation §5.1), archive job | ~11 min |
+| 4 | **DATA SPEC** | `02_technical/` | The contracts: connector fields, archive schemas (+broker/thesis columns), golden numbers | ~7 min |
+| 5 | **DESIGN SPEC** | `03_design/` | HOW it looks: tokens, layout, components, states — PI's looks, our math | ~7 min |
+| 6 | **TEST PLAN** | `04_quality/` | HOW we prove it: reconciliation, BWB grouping, validator regression, history-never-shrinks | ~6 min |
+| — | PROJECT LINEAGE | `05_history/` | Context only (no approval): how 4 projects became this one | ~3 min |
 
 ## The one-paragraph summary
 

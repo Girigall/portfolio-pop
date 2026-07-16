@@ -37,6 +37,15 @@
 | A4 | Provenance | Every row has `source` ∈ {connector, csv_backfill} |
 | A5 | Partial-failure discipline | Simulated tool failure → affected file unchanged, `_meta.json` logs it, dashboard banners it |
 
+## 3b. Validator tests (F9)
+
+| ID | Test | Pass condition |
+|---|---|---|
+| V1 | Regression vs legacy engine | Jun 10 legacy trade (SPXW 7290/7280, DTE 6, Δ0.47, credit $3.80) → REJECTED with the same 2+ violations the old export recorded |
+| V2 | Rulebook conflict surfacing | A 20-wide spread → width violation cited until Pop rules on RULEBOOK §6 Q1 |
+| V3 | Journal capture | Confirmed candidate lands in ledger with `source=validator`, thesis, VIX |
+| V4 | Framing guardrail | Output contains verdict + violations only — never "you should take this trade" |
+
 ## 4. Dashboard behavior tests
 
 | ID | Test | Pass condition |

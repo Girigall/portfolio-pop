@@ -49,7 +49,7 @@ Pop tested the market with his real data (619-row Robinhood CSV, May 2025–Jul 
 - ❌ Per-coin crypto detail (connector does not expose it; account-level crypto totals only)
 - ❌ Tax reporting (archive supports future tax work; no tax UI in v1)
 - ❌ Multi-user, auth, hosting (Stage 2 concerns)
-- ❌ Greeks display for open positions (available from connector; deferred to v1.1 to control scope)
+- ❌ Full greeks panel (v1.1) — but net delta + theta per structure ARE in v1 (F4): zero extra data cost, and the F9 validator needs delta anyway
 
 ## 6. Features
 
@@ -90,6 +90,15 @@ Dashboard reads the archive to render trends beyond live data (e.g., 12-month P/
 
 ### F8 — States `[P0]`
 Loading skeletons per section; partial-failure banners ("marks unavailable — showing last known"); explicit empty states. (Audit Q6: both incumbents are fragile here; we are API-live and cannot be.)
+
+### F9 — Pre-trade validator + journal `[P1]` *(the Ajax Tracker idea, reborn)*
+Pop pastes a screenshot of a candidate trade in chat → Claude extracts the setup natively (no OCR infrastructure — the lesson from options-dashboard's death) → validates against `STRATEGY_RULEBOOK.md` → returns verdict + itemized violations → on Pop's confirm, the candidate enters the journal (ledger `candidates` section) with thesis, VIX, and reasoning captured — closing the "data lost after every trade" loop from the Ajax PDR.
+**Framing rule (non-negotiable):** the validator checks Pop's own written rules. It never advises, authorizes, or executes. The decision and the click are Pop's, every time.
+Origin: legacy rule engine, ported and smoke-tested against real trades (see PROJECT_LINEAGE).
+
+## 6b. Broker portability (the Tastytrade scenario)
+
+The archive is deliberately broker-agnostic: generic fields (symbol/strike/expiry — no Robinhood IDs as keys), a `broker` column on every row, provenance recorded. If Pop switches brokers (Tastytrade under consideration): history in Drive is untouched, the new broker's connector (native API or SnapTrade) maps into the same ledger, the dashboard continues with a mixed-broker history. **Pop's data never lives inside any broker or platform.**
 
 ## 7. Data correctness requirements (the product's soul)
 

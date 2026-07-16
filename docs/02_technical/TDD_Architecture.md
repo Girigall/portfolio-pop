@@ -82,6 +82,12 @@ Known limitation: two independent structures on the same chain+expiry merge into
 | 3 strikes K1<K2<K3, puts, mid short with qty = wings total | wings equal → **Butterfly**; wings unequal → **BWB** |
 | anything else | Custom (N legs) — never mislabeled, never dropped |
 
+### 5.1 Trade validation rules (F9 — ported from legacy ruleEngine.ts, smoke-tested 2026-07-16)
+
+Deterministic checks against `STRATEGY_RULEBOOK.md` §2; each returns pass/violation with the measured value:
+`DTE ∈ [R3]` · `|short delta| ∈ [R4]` · `width = R5` · `credit ∈ [R7]` · `credit/width ratio` · `distance from spot ∈ [R6]` · `position max-loss vs portfolio (R10)`.
+Output: verdict (pass/fail) + itemized violations + checks-passed count. Rulebook open questions (§6) surface as violations until Pop rules on them. Validation input comes from screenshot extraction (native multimodal — no OCR service) plus live quote enrichment (delta from `get_option_quotes`, spot from `get_index_quotes`, VIX same call).
+
 ## 6. Money math (the part every competitor got wrong)
 
 **Net premium:** Σ per leg — short legs: `+avg_price_abs × qty × multiplier/100`; long legs: negative. (`average_price` from connector is per-contract; multiplier from `trade_value_multiplier`, typically 100.)
