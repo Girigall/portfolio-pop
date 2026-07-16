@@ -87,6 +87,7 @@ Known limitation: two independent structures on the same chain+expiry merge into
 Deterministic checks against `STRATEGY_RULEBOOK.md` §2; each returns pass/violation with the measured value:
 `DTE ∈ [R3]` · `|short delta| ∈ [R4]` · `width = R5` · `credit ∈ [R7]` · `credit/width ratio` · `distance from spot ∈ [R6]` · `position max-loss vs portfolio (R10)`.
 Output: verdict (pass/fail) + itemized violations + checks-passed count. Rulebook open questions (§6) surface as violations until Pop rules on them. Validation input comes from screenshot extraction (native multimodal — no OCR service) plus live quote enrichment (delta from `get_option_quotes`, spot from `get_index_quotes`, VIX same call).
+**Mandatory extraction-confirmation gate (HAL review #3):** extracted values are echoed to Pop for confirm/correct/retake BEFORE validation runs. Flow: screenshot → extraction → confirmation → enrichment → verdict → (Pop confirms) → journal write with `source=validator`. Unconfirmed extractions are discarded, never journaled.
 
 ## 6. Money math (the part every competitor got wrong)
 
@@ -156,6 +157,8 @@ Post-pipeline, classification becomes exact: closes are matched to remembered op
 ## 13. Stage 2 migration notes (context, not v1 scope)
 
 The archive schema is the future product's ingestion format. Grouping/detection/max-loss logic (§4–6) ports to a backend as pure functions. Broker connectivity for external users: SnapTrade (documented in session as buy-not-build). TViz custom-dashboard pattern (audit B12) is the Stage 2 flagship differentiator.
+
+**Standalone architecture (per HAL review + Pop's independence requirement):** a hosted SPA at a URL, readable from any browser/device without Claude running. Two data sources: (1) the Drive archive CSVs — always available, zero dependencies; (2) an optional lightweight local proxy for live Robinhood data, with graceful degradation to the last archived snapshot + explicit "last updated" timestamp when the proxy is down. Modular shell: portfolio is one page; future modules (expenses, other assets) are sibling pages sharing the shell, never the data layer. Stage 1's Drive-CSV-as-system-of-record design makes this migration a view swap, not a rebuild.
 
 ---
 

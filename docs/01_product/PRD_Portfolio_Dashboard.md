@@ -73,7 +73,7 @@ Layout/hierarchy: label small muted, value large bold, PI-style (audit Q7.1).
 Cumulative realized options P/L line + monthly bars toggle. Pill-style range switcher: 30d / 90d / 6M / YTD / ALL (audit Q3 winner). Default: YTD.
 
 ### F4 — Open positions table (structures) `[P0]`
-One row per structure (not per leg). Columns per audit Q2 ideal-BWB-row: Opened · Underlying · Strategy badge (PCS/CCS/BWB/Fly/CSP/CC/Long) · Strikes · Expiry · Net premium · Open P/L · **Max loss** · Break-even(s) · Status. Legs listed in a sub-line. Strategy auto-detected (TDD §5).
+One row per structure (not per leg). Columns per audit Q2 ideal-BWB-row: Opened · Underlying · Strategy badge (PCS/CCS/BWB/Fly/CSP/CC/Long) · Strikes · Expiry · Net premium · Open P/L · **Max loss** · **Net Δ / Θ** (per structure — P0 per HAL review #2; data already fetched per leg, display-only cost) · Break-even(s) · Status. Legs listed in a sub-line. Strategy auto-detected (TDD §5).
 
 ### F5 — Closed trades table `[P0]`
 Pill filters (All / Options / Stocks · time ranges). Columns: Closed date · Underlying · Qty · Realized P/L (green/red). Source: broker per-trade realized history — never inferred.
@@ -93,6 +93,7 @@ Loading skeletons per section; partial-failure banners ("marks unavailable — s
 
 ### F9 — Pre-trade validator + journal `[P1]` *(the Ajax Tracker idea, reborn)*
 Pop pastes a screenshot of a candidate trade in chat → Claude extracts the setup natively (no OCR infrastructure — the lesson from options-dashboard's death) → validates against `STRATEGY_RULEBOOK.md` → returns verdict + itemized violations → on Pop's confirm, the candidate enters the journal (ledger `candidates` section) with thesis, VIX, and reasoning captured — closing the "data lost after every trade" loop from the Ajax PDR.
+**Extraction verification (required — HAL review #3):** before any verdict, the extracted values (structure, strikes, credit, DTE, qty) are shown to Pop for confirmation — "are these numbers correct?" — with a correct/retake path. No verdict on unconfirmed numbers; multimodal extraction is non-deterministic and is treated as such.
 **Framing rule (non-negotiable):** the validator checks Pop's own written rules. It never advises, authorizes, or executes. The decision and the click are Pop's, every time.
 Origin: legacy rule engine, ported and smoke-tested against real trades (see PROJECT_LINEAGE).
 
@@ -115,6 +116,7 @@ The archive is deliberately broker-agnostic: generic fields (symbol/strike/expir
 | Closed-trade strikes unavailable pre-pipeline | Archive captures strikes while positions are open; historical gap documented, backfilled from Pop's CSV where possible |
 | Artifact declined/unavailable | All logic and archive live outside the artifact; dashboard is a view, not the system |
 | Scope creep | v1.1 parking lot at end of this doc; nothing enters v1 without Pop's sign-off |
+| **Cowork/Claude runtime dependency** (HAL review #1) | Dashboard + archive job run only inside Claude sessions. Mitigation: archive CSVs in Drive are the system of record and platform-independent; Stage 2 replaces the artifact with a standalone SPA (TDD §13). Stage 1 ships with this risk accepted and documented |
 
 ## 9. Release plan
 
@@ -126,7 +128,7 @@ The archive is deliberately broker-agnostic: generic fields (symbol/strike/expir
 
 ## 10. v1.1 parking lot
 
-Greeks on open positions · per-structure journal notes (PI journal pattern) · calendar heatmap (TViz B05, lower density) · Avg % capture card (audit Q7.2) · custom widget layout (TViz B12 — Stage 2 flagship)
+Full greeks panel (gamma/vega/rho — net Δ/Θ are already v1 in F4) · per-structure journal notes (PI journal pattern) · calendar heatmap (TViz B05, lower density) · Avg % capture card (audit Q7.2) · custom widget layout (TViz B12 — Stage 2 flagship)
 
 ---
 

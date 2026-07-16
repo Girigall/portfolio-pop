@@ -36,6 +36,7 @@
 | A3 | Strike memory | A structure open in week N, closed in week N+1 → ledger row carries strategy/strikes/expiry |
 | A4 | Provenance | Every row has `source` ∈ {connector, csv_backfill} |
 | A5 | Partial-failure discipline | Simulated tool failure → affected file unchanged, `_meta.json` logs it, dashboard banners it |
+| A6 | **Backfill coverage gate** (HAL #4) | Ledger rows from backfill ≥ 95% of trade rows in Pop's official Robinhood CSV; gap list produced for the remainder — no silent omissions |
 
 ## 3b. Validator tests (F9)
 
@@ -69,7 +70,8 @@
 
 1. Friday job runs twice unattended → A1/A2 verified both times
 2. One mid-week manual dashboard open → D1 verified against Robinhood app by Pop
-3. Pop signs the bake-complete line below; only then is v1 "done"
+3. **Failure drill (HAL #5):** one simulated Friday with the Robinhood connector unreachable → archive files unchanged · `_meta.json` logs the failure · dashboard banners it on next open · zero partial writes
+4. Pop signs the bake-complete line below; only then is v1 "done"
 
 ---
 
