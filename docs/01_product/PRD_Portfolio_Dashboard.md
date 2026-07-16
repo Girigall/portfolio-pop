@@ -1,0 +1,124 @@
+# PRD — Pop's Portfolio Dashboard (v1)
+
+**Status:** DRAFT — awaiting Pop's approval
+**Author:** Claude (Cowork) · **Owner:** Pop
+**Date:** 2026-07-15
+**Inputs:** OpenClaw UX audit (`audit/..._findings.md`), Robinhood connector data verified in session, platform failure evidence
+
+---
+
+## 1. Vision
+
+A portfolio dashboard that shows **correct numbers** with **best-in-class presentation** — the Premium Insights look with math that ties to the broker to the cent, plus the one thing no platform on the market does: **multi-leg options structures (including broken-wing butterflies) displayed as single, honestly-priced positions.**
+
+Two stages:
+- **Stage 1 (this PRD):** personal dashboard for Pop, built in Cowork, live Robinhood data, permanent history archive.
+- **Stage 2 (separate PRD later):** commercial product. Stage 1 is its living prototype and seed dataset.
+
+## 2. Problem & evidence
+
+Pop tested the market with his real data (619-row Robinhood CSV, May 2025–Jul 2026):
+
+| Platform | Failure | Evidence |
+|---|---|---|
+| Premium Insights | Ignores long legs of spreads → reported **+$188,540** P/L vs true **+$11,852** (16x overstatement) | Import screens, verified against Robinhood aggregates |
+| TradesViz | Mispaired an assigned stock lot against a buy 10 months later → phantom **+$4,920** HIMS trade | Cross-checked against broker record (+$577.90 true) |
+| Wingman | Handles structures but costs $588/yr | Pricing page |
+| OptionIncome / Optioneer | Immature / too simple | Pop's evaluation |
+
+**Root cause across the market:** CSV inference. Every platform guesses trade pairings from ambiguous broker logs. This product does not guess — it reads realized P&L and open-position contracts directly from the broker connection.
+
+## 3. Users
+
+- **v1:** Pop. Options income trader (SPX/SPXW put credit spreads + broken-wing butterflies, ~$1.5–2.5k/mo realized), long-term stock investor, 5 Robinhood accounts, margin user.
+- **v2 (context only):** retail options sellers underserved by the platforms above.
+
+## 4. Goals & success criteria
+
+| # | Goal | Measure |
+|---|---|---|
+| G1 | Every displayed number ties to Robinhood ground truth | Realized totals match `get_realized_pnl` to the cent |
+| G2 | Every open multi-leg structure displays as ONE row | Jul 29 SPXW BWB renders as one position with net credit, open P/L, max loss |
+| G3 | History accumulates permanently, owned by Pop | Weekly archive files in Pop's Google Drive, cumulative, never overwritten destructively |
+| G4 | At-a-glance clarity matching PI's density | ≥8 stat cards above the fold; one-scan comprehension |
+| G5 | Zero recurring manual work | After setup, Pop does nothing weekly |
+
+## 5. Non-goals (v1)
+
+- ❌ Trade execution or any write action to Robinhood (hard ban, per project rules)
+- ❌ Per-coin crypto detail (connector does not expose it; account-level crypto totals only)
+- ❌ Tax reporting (archive supports future tax work; no tax UI in v1)
+- ❌ Multi-user, auth, hosting (Stage 2 concerns)
+- ❌ Greeks display for open positions (available from connector; deferred to v1.1 to control scope)
+
+## 6. Features
+
+### F1 — Header: accounts strip `[P0]`
+All 5 accounts with masked numbers, nickname, total value; net worth aggregate; margin debit + buying power surfaced for the Stocks account. Data timestamp + refresh note.
+
+### F2 — Stat-card row (the "PI row, fixed") `[P0]`
+10 cards, modeled on audit A1, computed correctly:
+1. Total options P/L (realized, from broker aggregate)
+2. Win rate (per closed options trade)
+3. Avg win · 4. Avg loss
+5. Open premium (net credit of open structures)
+6. **Open risk** (Σ max loss of open structures — payoff-function computed)
+7. Open trades count
+8. **Avg % return/risk** (realized P/L ÷ risk at entry) — Pop's preferred honest metric
+9. Avg time in trade
+10. This-month realized P/L vs monthly average
+Layout/hierarchy: label small muted, value large bold, PI-style (audit Q7.1).
+
+### F3 — Running P/L chart `[P0]`
+Cumulative realized options P/L line + monthly bars toggle. Pill-style range switcher: 30d / 90d / 6M / YTD / ALL (audit Q3 winner). Default: YTD.
+
+### F4 — Open positions table (structures) `[P0]`
+One row per structure (not per leg). Columns per audit Q2 ideal-BWB-row: Opened · Underlying · Strategy badge (PCS/CCS/BWB/Fly/CSP/CC/Long) · Strikes · Expiry · Net premium · Open P/L · **Max loss** · Break-even(s) · Status. Legs listed in a sub-line. Strategy auto-detected (TDD §5).
+
+### F5 — Closed trades table `[P0]`
+Pill filters (All / Options / Stocks · time ranges). Columns: Closed date · Underlying · Qty · Realized P/L (green/red). Source: broker per-trade realized history — never inferred.
+
+### F6 — Stocks & accounts section `[P1]`
+Stock positions across Stocks + IRA accounts: qty, avg cost, price, value, P/L $ and %, % of account. Concentration flag when one position > 25% of its sleeve.
+
+### F7 — History spine (weekly archive) `[P0]`
+Scheduled Friday-after-close job writes to Pop's Drive:
+- `trades_ledger.csv` — cumulative realized trades (append-only)
+- `positions_snapshots.csv` — weekly open-position snapshots **with full contract detail (strikes remembered while open)**
+- `accounts_history.csv` — weekly account values
+Dashboard reads the archive to render trends beyond live data (e.g., 12-month P/L once data exists). Files are human-readable, portable, and survive any platform change.
+
+### F8 — States `[P0]`
+Loading skeletons per section; partial-failure banners ("marks unavailable — showing last known"); explicit empty states. (Audit Q6: both incumbents are fragile here; we are API-live and cannot be.)
+
+## 7. Data correctness requirements (the product's soul)
+
+1. Realized totals come from Robinhood's own aggregation endpoints — never recomputed from CSV inference.
+2. Structure max loss computed by payoff evaluation at expiry across all legs (TDD §6) — never by width-minus-credit shortcuts that break on asymmetric wings.
+3. Any number that cannot be verified displays with an explicit "unverified" marker rather than silently rendering.
+4. Options vs stock classification uses the documented heuristic (TDD §7) with its limits stated in-app.
+
+## 8. Risks & mitigations
+
+| Risk | Mitigation |
+|---|---|
+| Connector schema changes | All tool shapes documented in DATA_SPEC; graceful degradation + banner |
+| Closed-trade strikes unavailable pre-pipeline | Archive captures strikes while positions are open; historical gap documented, backfilled from Pop's CSV where possible |
+| Artifact declined/unavailable | All logic and archive live outside the artifact; dashboard is a view, not the system |
+| Scope creep | v1.1 parking lot at end of this doc; nothing enters v1 without Pop's sign-off |
+
+## 9. Release plan
+
+1. Pop approves PRD + TDD + Design Spec + Test Plan
+2. Build archive job first (history starts accumulating immediately)
+3. Build dashboard artifact
+4. Acceptance run per Test Plan (golden numbers must reconcile)
+5. Two-week bake: weekly job runs twice, counts verified to only grow
+
+## 10. v1.1 parking lot
+
+Greeks on open positions · per-structure journal notes (PI journal pattern) · calendar heatmap (TViz B05, lower density) · Avg % capture card (audit Q7.2) · custom widget layout (TViz B12 — Stage 2 flagship)
+
+---
+
+**APPROVAL:** ☐ Approved by Pop · date: ________ · changes requested: ________
