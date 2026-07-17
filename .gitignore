@@ -1,2 +1,3 @@
 .DS_Store
-history/_meta.json
+run_data.json
+*.tmp

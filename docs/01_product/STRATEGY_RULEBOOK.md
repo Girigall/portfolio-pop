@@ -100,4 +100,4 @@ From Pop's own case study (`SPX Rules_Robinhood.md`): opening overlapping strike
 
 ---
 
-**APPROVAL:** ☐ Approved by Pop (incl. OQ rulings) · date: ________
+**APPROVAL:** ✅ Approved by Pop (confirmed in chat: strategies match his files) · date: 2026-07-17

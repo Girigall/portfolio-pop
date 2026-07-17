@@ -21,7 +21,7 @@
 | # | Milestone | Ships | Reads | Tests | Status |
 |---|---|---|---|---|---|
 | M1 | **Archive job** — weekly Friday task writing trades_ledger, positions_snapshots, accounts_history to `history/` | History starts accumulating | TDD §9, DATA_SPEC §4 | A1–A5 | ✅ 2026-07-17 |
-| M2 | **Backfill** — import Pop's official Robinhood CSV into ledger | Complete history since May 2025 | DATA_SPEC §4.1, §6 | A6, R4 | ⬜ |
+| M2 | **Backfill** — import Pop's official Robinhood CSV into ledger | Complete history since May 2025 | DATA_SPEC §4.1, §6 | A6, R4 | ✅ 2026-07-17 |
 | M3 | **Dashboard core** — `app/dashboard.html`: accounts strip + 10 stat cards + P/L chart | Daily-usable dashboard | PRD F1–F3, DESIGN §2–4 | R1–R3, D2, D6 | ⬜ |
 | M4 | **Structures table** — grouping, strategy badges, max loss, Δ/Θ, compliance chips | The flagship feature | TDD §4–6, RULEBOOK, DESIGN S3/S3b | S1–S7 | ⬜ |
 | M5 | **Closed trades + stocks sections** | Full v1 surface | PRD F5–F6 | R5, D4 | ⬜ |
@@ -33,6 +33,7 @@
 | Date | Session did | Commits |
 |---|---|---|
 | 2026-07-16 | Spec phase closed: docs approved, rulebook v2 + tolerance model, HAL review applied, repo consolidated | 70be898…latest |
+| 2026-07-17 | **M2 shipped:** backfill_enrich.py — 82/82 option rows enriched with strikes/strategy from official CSV (100%, A6 gate 95%), R4 HIMS +$577.90 exact, ±1-day settlement matching, official CSV archived in history/backfill/ | this session |
 | 2026-07-17 | **M1 shipped:** archive_generate.py + archive_job.md, first snapshot (94 trades / 41 positions / 5 accounts), tests A1/A2/A5 passed, options ledger reconciled to broker exact ($12,337.24), Friday task scheduled (5:34 PM local). Notable: Jul 17 spread closed early +$570; three BWBs open (Jul 29, Aug 3, Aug 6); Jul 29 fly has pending closing order | this session |
 
 ## WIP notes
