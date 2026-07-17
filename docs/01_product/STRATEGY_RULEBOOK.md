@@ -1,56 +1,85 @@
-# STRATEGY RULEBOOK — Pop's SPX Premium-Selling System
+# STRATEGY RULEBOOK — Pop's Options Playbook (multi-strategy)
 
-**Status:** CANONICAL — single source of truth for trade validation (feeds PRD F9)
-**Consolidated from:** legacy strategy docs v1 (May 2026) + v2 (Jun 2026), now absorbed here
-**Rule of the rulebook:** if a live trade and this document disagree, that's a decision for Pop — never silently resolved.
+**Status:** CANONICAL v2 — rebuilt 2026-07-16 from Pop's full strategy library (`03_Investing/04_Options/`), replacing the single-strategy v1
+**Consumed by:** F9 validator — each candidate trade is matched to its strategy first, then validated against THAT strategy's rules
+**Source docs:** `STRA_SPX Strategy` · `STRAT_Put BWB 13%` · `STRAT_BWB` · `STRAT_Double BWB` · legacy v1/v2 (git history)
 
 ---
 
-## 1. Philosophy (unchanged across versions)
+## 0. How the validator uses this book
 
-Systematic premium selling on SPX. Edge = probability + theta + risk control + consistency — **not prediction**. Many small wins, occasional controlled losses. Survival depends entirely on sizing and stops.
+1. Detect structure (PCS, BWB, etc. — TDD §5)
+2. Match to a strategy chapter below (by structure + DTE profile)
+3. Validate against that chapter's parameters only
+4. No matching chapter → "no rules defined for this structure" — flagged, never guessed
 
-## 2. Machine-readable parameters (what the F9 validator enforces)
+---
 
-| # | Parameter | Rule | Typical |
-|---|---|---|---|
-| R1 | Underlying | SPX / SPXW only | — |
-| R2 | Structure | Bull put credit spread | — |
-| R3 | DTE | 7–14 | 10–12 |
-| R4 | Short-leg delta | 0.10–0.15 | 0.12–0.14 |
-| R5 | Spread width | 10 pts preferred; 15 occasional | 10 |
-| R6 | Distance from spot | 4–6% OTM (3–4% aggressive · 6%+ conservative) | 4–6% |
-| R7 | Credit target | $0.80–1.00 on 10-wide · $1.20–1.80 in high IV | ~$1.00 |
-| R8 | Profit taking | Close at 50–70% of max profit | 65–70% |
-| R9 | Stop loss | 200–250% of credit received — **hard** | — |
-| R10 | Position sizing | Max loss vs portfolio; flagged historically weakest discipline | — |
+## S1 — SPX Put Credit Spread (income core)
 
-## 3. Entry conditions
-
-**Enter when:** market stabilizes after weakness · VIX elevated but not panic · SPX above major support · no imminent macro event.
-**Avoid:** chasing green rallies · low-VIX complacency · violent breakdowns.
-
-## 4. VIX framework
-
-| Regime | Behavior |
+| Parameter | Rule |
 |---|---|
-| VIX ~14–16 | Smaller size, further OTM, conservative (compressed premium, expansion risk) |
-| VIX ~20–30 | Better premium and edge — sizing discipline still absolute |
+| Structure | Bull put spread, SPX/SPXW |
+| Width | 10 points |
+| DTE | 7–14 |
+| Short delta | 0.10–0.15 |
+| Distance | 4–6% below spot |
+| Credit | $0.80–1.00 per 10-wide |
+| Profit take | 50–70% of max profit |
+| Stop loss | 200–250% of credit — hard |
+| Risk/trade | 1–3% of portfolio |
+| Avoid | FOMC, CPI, earnings-like events |
 
-## 5. Known psychological failure cycle (self-documented)
+## S2 — Put Broken-Wing Butterfly "13%" (the live BWB strategy)
 
-Winning streak → size up → ignore stop → one large loss → revenge trading. The system works only while rules stay mechanical.
+| Parameter | Rule |
+|---|---|
+| Structure | +1 put above / −2 puts at short strike / +1 put below (wider) |
+| Wings | 25 narrow / 50 broken (live trades run ~20/50 — see OQ2) |
+| DTE | 21 at entry · exit ~7 DTE · hold ≈14 days |
+| Deltas | upper long ~32 · shorts ~28 · lower long ~21 (starting points) |
+| VIX | <15 avoid/reduce · 15–20 acceptable · 20–30 ideal · >30 post-panic, smaller |
+| Best entry | After a down day (higher IV, farther strikes) |
+| Bias | Bullish-to-neutral · no upside risk |
+| Avoid | 0 DTE, expiration week, all-time highs, pre-macro events |
 
-## 6. ⚠️ OPEN QUESTIONS for Pop (found by running the rulebook against live trades)
+**Evidence of fit:** Jul 29 SPXW fly (7200/7250×2/7270) was opened Jul 8 = exactly 21 DTE ✓. This is the strategy the live BWBs belong to.
 
-| # | Conflict | Evidence | Pop's ruling |
+## S3 — Broken-Wing Butterfly (classic, longer duration)
+
+| Parameter | Rule |
+|---|---|
+| DTE | 30–60 (ideal 35–45) · avoid 0–7 |
+| Deltas | upper long 20–30 · shorts 15–20 · lower long 5–10 |
+| VIX | same table as S2; best after vol expansion, expecting contraction |
+| Goal | SPX finishes near short strike; often opened for a credit |
+
+## S4 — Double BWB (neutral regime)
+
+| Parameter | Rule |
+|---|---|
+| Structure | Independent put BWB + call BWB, same expiry, entered as two orders |
+| DTE | 35–45 preferred (30–60 acceptable) · avoid 0–21 |
+| Deltas | longs ~20 · shorts 15–18 · far longs 5–8 |
+| Bias | Neutral, post-vol-expansion |
+
+## S5 — Library, not yet active
+
+`Calendar Spreads · Butterfly · LEAPS · Collar · VIX strategies · Long Call Condor · Low Risk Strategies` — documented in `04_Options/`, no live trades matched. The validator reports "library strategy, no active ruleset" if encountered. Chapters get promoted here when Pop starts trading them.
+
+## S6 — Operational rule: Robinhood leg-netting hazard
+
+From Pop's own case study (`SPX Rules_Robinhood.md`): opening overlapping strikes on the same expiration (e.g., PCS + BWB sharing strikes) causes Robinhood to re-pair legs, merging strategies, distorting collateral, and making legs hard to close.
+**Rule:** the validator warns whenever a candidate shares strikes/expiry with an existing open structure. (This also documents the real-world limit in TDD §4 grouping.)
+
+## 7. ⚠️ Open questions (reframed after playbook discovery)
+
+| # | Question | Evidence | Pop's ruling |
 |---|---|---|---|
-| Q1 | **20-point widths in live use** vs R5 (10 preferred / 15 occasional) | Jul 17 SPX 7360/7340 spread is 20-wide | ☐ update rule · ☐ drift |
-| Q2 | **Broken-wing butterflies traded live** but absent from this rulebook | Jul 22 + Jul 29 + Aug 3 SPXW BWBs | ☐ add BWB rule section · ☐ experimental, no rules yet |
-| Q3 | Historic trades violated delta cap (0.47 vs 0.15 max, Jun 10) | Legacy export, recorded violations | ☐ acknowledged, rules stand |
-
-Until ruled, the F9 validator flags these as violations — by design, never silently.
+| OQ1 | Recent credit spreads run 20-wide vs S1's 10 | Jul 17 SPX 7360/7340 | ☐ widen S1 to 10–20 · ☐ keep 10, flag |
+| OQ2 | Live BWB narrow wing is 20 vs S2's 25 | Jul 29 fly | ☐ S2 wings "20–25" · ☐ keep 25, flag |
+| OQ3 | Violations display | Pop asked for ideas | Resolved → see DESIGN_SPEC §4b (warning chips + tooltip, never blocking) |
 
 ---
 
-**APPROVAL:** ☐ Approved by Pop (including §6 rulings) · date: 16-7-2026
+**APPROVAL:** ☐ Approved by Pop (incl. OQ rulings) · date: ________

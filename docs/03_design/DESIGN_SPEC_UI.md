@@ -54,6 +54,14 @@ Columns: Opened · Underlying · **Strategy badge** · Strikes (`7200 / 7250 / 7
 Leg sub-line under strategy, muted 11.5px: `+1 7200P  −2 7250P  +1 7270P`.
 BWB row is the acceptance benchmark (PRD G2, audit Q2 ideal-row).
 
+### S3b — Rule-violation display (answers Rulebook OQ3, Pop's request)
+Violations inform, never block or shame. Treatment, from lightest to strongest:
+
+1. **Compliance chip** per structure row: 🟢 `rules ✓` · 🟡 `2 flags` · 🔴 `off-book` (no matching strategy)
+2. **Tooltip on the chip:** itemized list — "Width 20 vs rule 10 · DTE 6 vs rule 7–14" — each line names the rule chapter (S1, S2…)
+3. **Journal permanence:** violations recorded in the ledger row (per legacy schema's `Entry Rule Violations` field) so patterns show up in history
+4. Never a popup, never red row backgrounds — one calm chip, details on demand
+
 ### S4 — Closed trades
 Pill filters row: `All · Options · Stocks` + `YTD · 90d · All time` (two pill groups, audit Q5 winner). Table: Closed · Underlying · Qty · Realized P/L. Footer line: "N trades · net +$X — ties to Robinhood ✓" with reconciliation checkmark when totals match the aggregate endpoint.
 
