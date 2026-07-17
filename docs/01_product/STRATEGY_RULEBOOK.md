@@ -53,4 +53,4 @@ Until ruled, the F9 validator flags these as violations — by design, never sil
 
 ---
 
-**APPROVAL:** ☐ Approved by Pop (including §6 rulings) · date: ________
+**APPROVAL:** ☐ Approved by Pop (including §6 rulings) · date: 16-7-2026

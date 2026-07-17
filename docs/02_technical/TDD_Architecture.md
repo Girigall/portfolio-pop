@@ -162,4 +162,4 @@ The archive schema is the future product's ingestion format. Grouping/detection/
 
 ---
 
-**APPROVAL:** ☐ Approved by Pop · date: ________ · changes requested: ________
+**APPROVAL:** ☐ Approved by Pop · date: 16-7-2026 · changes requested: None

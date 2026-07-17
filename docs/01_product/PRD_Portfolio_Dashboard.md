@@ -132,4 +132,4 @@ Full greeks panel (gamma/vega/rho — net Δ/Θ are already v1 in F4) · per-str
 
 ---
 
-**APPROVAL:** ☐ Approved by Pop · date: ________ · changes requested: ________
+**APPROVAL:** ☐ Approved by Pop · date: 16-7-2026 · changes requested: None

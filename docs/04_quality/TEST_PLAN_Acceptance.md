@@ -76,6 +76,6 @@
 ---
 
 **APPROVALS**
-☐ Test plan approved (pre-build) — Pop · date: ________
-☐ All P0 tests passed (pre-ship) — date: ________
-☐ Two-week bake complete — Pop · date: ________
+☐ Test plan approved (pre-build) — Pop · date: 16-7-2026
+☐ All P0 tests passed (pre-ship) — date: 16-7-2026
+☐ Two-week bake complete — Pop · date: 16-7-2026

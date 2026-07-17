@@ -101,4 +101,4 @@ One row per position per week. This is the strike-memory substrate.
 
 ---
 
-**APPROVAL:** ☐ Approved by Pop · date: ________ · changes requested: ________
+**APPROVAL:** ☐ Approved by Pop · date: 16-7-2026 · changes requested: None

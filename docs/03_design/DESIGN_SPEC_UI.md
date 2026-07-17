@@ -98,4 +98,4 @@ Weekly net-worth line · monthly options income bars · realized-vs-unrealized a
 
 ---
 
-**APPROVAL:** ☐ Approved by Pop · date: ________ · changes requested: ________
+**APPROVAL:** ☐ Approved by Pop · date: 16-7-2026 · changes requested: None
