@@ -13,6 +13,24 @@
 3. Validate against that chapter's parameters only
 4. No matching chapter → "no rules defined for this structure" — flagged, never guessed
 
+### 0.1 Tolerance philosophy (Pop's directive, 2026-07-16)
+
+Rules are **zones, not walls**. Option chains don't always offer the ideal strike; real entries are a combo of factors. Every numeric parameter therefore has two bands:
+
+| Band | Meaning | Chip |
+|---|---|---|
+| **Ideal** | The textbook zone | 🟢 counts as clean |
+| **Acceptable** | Wiggle room — fine when the chain forces it | 🟢 clean, noted in tooltip only |
+| **Outside** | Beyond wiggle room | 🟡 flag (never a block) |
+
+The overall verdict is holistic: one parameter slightly outside its acceptable band while everything else is ideal → 🟡 with context, not a failure. The validator describes; Pop decides.
+
+**Standing bands (resolve OQ1/OQ2):**
+- S1 spread width: ideal 10 · acceptable up to 20
+- S2 narrow wing: ideal 25 · acceptable 20–30 (broken wing ~2× narrow)
+- DTE: ±2 days around each chapter's range
+- Deltas: ±0.03 around each chapter's targets
+
 ---
 
 ## S1 — SPX Put Credit Spread (income core)
@@ -72,13 +90,13 @@
 From Pop's own case study (`SPX Rules_Robinhood.md`): opening overlapping strikes on the same expiration (e.g., PCS + BWB sharing strikes) causes Robinhood to re-pair legs, merging strategies, distorting collateral, and making legs hard to close.
 **Rule:** the validator warns whenever a candidate shares strikes/expiry with an existing open structure. (This also documents the real-world limit in TDD §4 grouping.)
 
-## 7. ⚠️ Open questions (reframed after playbook discovery)
+## 7. Open questions — ALL RESOLVED ✅
 
-| # | Question | Evidence | Pop's ruling |
-|---|---|---|---|
-| OQ1 | Recent credit spreads run 20-wide vs S1's 10 | Jul 17 SPX 7360/7340 | ☐ widen S1 to 10–20 · ☐ keep 10, flag |
-| OQ2 | Live BWB narrow wing is 20 vs S2's 25 | Jul 29 fly | ☐ S2 wings "20–25" · ☐ keep 25, flag |
-| OQ3 | Violations display | Pop asked for ideas | Resolved → see DESIGN_SPEC §4b (warning chips + tooltip, never blocking) |
+| # | Question | Resolution |
+|---|---|---|
+| OQ1 | 20-wide spreads vs S1's 10 | ✅ Tolerance bands (§0.1): ideal 10, acceptable to 20 |
+| OQ2 | BWB narrow wing 20 vs 25 | ✅ Tolerance bands (§0.1): ideal 25, acceptable 20–30 |
+| OQ3 | Violations display | ✅ DESIGN_SPEC §3b: calm chips + tooltip, never blocking |
 
 ---
 
