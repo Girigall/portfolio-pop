@@ -80,7 +80,10 @@ One row per position per week. This is the strike-memory substrate.
 ### 4.3 `accounts_history.csv` (weekly append)
 `snapshot_date · account · total_value · equity_value · options_value · crypto_value · cash · buying_power`
 
-### 4.4 `_meta.json`
+### 4.4 `candidates_journal.csv` (F9 validator, append-only)
+`created_at · underlying · strategy · rule · strikes · expiry · qty · net_credit · dte_entry · short_delta · vix · spot · verdict · flags · thesis · status · source` — pre-trade records; executed trades appear separately in the ledger via the archive job.
+
+### 4.5 `_meta.json`
 `last_run · rows_appended{ledger,snapshots,accounts} · failures[] · schema_version`
 
 ## 5. Format standards (all files & UI)

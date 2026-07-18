@@ -25,7 +25,7 @@
 | M3 | **Dashboard core** — `app/dashboard.html`: accounts strip + 10 stat cards + P/L chart | Daily-usable dashboard | PRD F1–F3, DESIGN §2–4 | R1–R3, D2, D6 | ✅ 2026-07-18 |
 | M4 | **Structures table** — grouping, strategy badges, max loss, Δ/Θ, compliance chips | The flagship feature | TDD §4–6, RULEBOOK, DESIGN S3/S3b | S1–S7 | ✅ 2026-07-18 |
 | M5 | **Closed trades + stocks sections** | Full v1 surface | PRD F5–F6 | R5, D4 | ✅ 2026-07-18 |
-| M6 | **F9 validator** — screenshot → confirm → validate → journal | Pre-trade workflow | TDD §5.1, RULEBOOK §0.1 | V1–V4 | ⬜ |
+| M6 | **F9 validator** — screenshot → confirm → validate → journal | Pre-trade workflow | TDD §5.1, RULEBOOK §0.1 | V1–V4 | ✅ 2026-07-18 |
 | M7 | **Bake** — two Fridays + failure drill | v1 done | TEST_PLAN §6 | bake gates | ⬜ |
 
 ## Session log
