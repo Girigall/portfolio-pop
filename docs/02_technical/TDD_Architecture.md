@@ -8,25 +8,22 @@
 ## 1. Architecture overview
 
 ```
-┌─────────────────┐     read-only MCP      ┌──────────────────┐
-│ Robinhood        │ ◄───────────────────── │ Claude (Cowork)  │
-│ (5 accounts)     │                        │  · weekly job    │
-└─────────────────┘                        │  · dashboard     │
-                                            └───────┬──────────┘
-                                                    │ writes/reads
-                                     ┌──────────────▼──────────────┐
-                                     │ Pop's Google Drive           │
-                                     │ 05_Portfolio/history/        │
-                                     │  · trades_ledger.csv         │
-                                     │  · positions_snapshots.csv   │
-                                     │  · accounts_history.csv      │
-                                     └──────────────┬──────────────┘
-                                                    │ read on open
-                                     ┌──────────────▼──────────────┐
-                                     │ Dashboard (Cowork artifact)  │
-                                     │ live MCP calls + archive     │
-                                     └─────────────────────────────┘
+┌────────────┐   weekly CSV (Pop, ~10 min)  ┌─────────────────────────────┐
+│ Robinhood   │ ───────────────────────────► │ F10 READER (in the web app) │
+│ (broker)    │                              └──────────────┬──────────────┘
+└─────┬──────┘                                              │ normalize+append
+      │ optional courier (Claude task v1 / local cron M9)   ▼
+      └───────────────────────────────► ┌───────────────────────────────────┐
+                                        │ MASTER CSVs — Pop owns everything │
+                                        │ Drive folder  +  GitHub mirror    │
+                                        └──────────────┬────────────────────┘
+                                                       │ fetch() — no auth, no AI
+                                        ┌──────────────▼────────────────────┐
+                                        │ M8 WEB APP — real URL, any device │
+                                        │ (GitHub Pages)  THE PRODUCT       │
+                                        └───────────────────────────────────┘
 ```
+
 
 **Components, deliberately decoupled (the product owes nothing to any AI runtime):**
 1. **Archive files** — plain CSV in Pop's Drive, mirrored to GitHub. THE system of record. Portable, human-readable, Excel-compatible.
