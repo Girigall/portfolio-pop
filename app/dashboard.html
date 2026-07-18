@@ -113,12 +113,46 @@ tr:last-child td { border-bottom:none; }
     </div>
     <div class="chartbox"><canvas id="plchart" role="img" aria-label="Realized options profit and loss over time"></canvas></div>
   </div>
+
+  <div class="card" style="margin-bottom:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+      <div style="font-size:14px; font-weight:600;">P/L calendar <span class="sub">(realized options, per day)</span></div>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button class="pill" id="calprev">‹</button>
+        <span id="callabel" style="font-size:13px; min-width:92px; text-align:center;"></span>
+        <button class="pill" id="calnext">›</button>
+      </div>
+    </div>
+    <div id="calendar"><div class="skel" style="height:180px">.</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+      <div style="font-size:14px; font-weight:600;">Closed option trades</div>
+      <span id="ctpills"></span>
+    </div>
+    <div class="tbl-wrap" id="closedopts"><div class="skel" style="height:100px">.</div></div>
+  </div>
 </section>
 
 <section id="t-stocks" hidden>
   <div class="scope">Stock positions — Stocks ••••2005 + Roth IRA ••••9521</div>
   <div class="grid-stat" id="stkstats"></div>
-  <div class="soon">📋 <b>Full stocks section</b> (positions, P/L, % of sleeve, concentration flags, closed trades, P/L calendar) — milestone <b>M5</b>.</div>
+  <div class="card" style="margin-bottom:14px;">
+    <div style="font-size:14px; font-weight:600; margin-bottom:8px;">Positions — Stocks ••••2005</div>
+    <div class="tbl-wrap" id="stk2005"><div class="skel" style="height:140px">.</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px;">
+    <div style="font-size:14px; font-weight:600; margin-bottom:8px;">Positions — Roth IRA ••••9521</div>
+    <div class="tbl-wrap" id="stk9521"><div class="skel" style="height:80px">.</div></div>
+  </div>
+  <div class="card" style="margin-bottom:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+      <div style="font-size:14px; font-weight:600;">Closed stock trades</div>
+      <span id="cspills"></span>
+    </div>
+    <div class="tbl-wrap" id="closedstks"><div class="skel" style="height:80px">.</div></div>
+  </div>
 </section>
 
 <section id="t-crypto" hidden>
@@ -251,7 +285,7 @@ function statCard(lbl, val, ctx, signed){
     <div class="val ${c}">${val}</div><div class="ctx">${ctx||""}</div></div>`;
 }
 
-let chart, monthBuckets = [], optTrades = [];
+let chart, monthBuckets = [], optTrades = [], stkTrades = [], calOff = 0;
 function weekBuckets(){
   const m = {};
   for (const t of optTrades){
@@ -357,6 +391,7 @@ function renderChart(){
       if (!cursor) break;
     }
     optTrades = trades.filter(isOption);
+    stkTrades = trades.filter(t => t.symbol && !isOption(t));
     const sum = optTrades.reduce((s,t)=>s+parseFloat(t.realized_gain),0);
     if (total != null) reconcile = Math.abs(sum-total) < 0.01;
     const wins = optTrades.filter(t=>parseFloat(t.realized_gain)>0);
@@ -369,6 +404,109 @@ function renderChart(){
     mtd = optTrades.filter(t=>new Date(t.timestamp)>=m0).reduce((s,t)=>s+parseFloat(t.realized_gain),0);
   } catch(e){ warn("Trade history unavailable — win-rate cards degraded"); }
   renderChart();
+
+  // ---- M5: closed-trade tables + calendar ----
+  function renderClosed(list, elId, pillsId, storeKey){
+    const range = localStorage.getItem(storeKey) || "YTD";
+    document.querySelectorAll("#"+pillsId+" .pill").forEach(p=>p.classList.toggle("on", p.dataset.r===range));
+    const now = new Date(); let cut = null;
+    if (range==="90d") cut = new Date(now - 90*864e5);
+    if (range==="YTD") cut = new Date(now.getFullYear(),0,1);
+    const rows = list.filter(t=>!cut || new Date(t.timestamp)>=cut)
+                     .sort((a,b)=>b.timestamp.localeCompare(a.timestamp));
+    const net = rows.reduce((s,t)=>s+parseFloat(t.realized_gain),0);
+    if (!rows.length){ $(elId).innerHTML = '<div class="sub" style="padding:10px">No trades in this range.</div>'; return; }
+    let h = "<table><tr><th>Closed</th><th>Symbol</th><th>Qty</th><th style='text-align:right'>Realized P/L</th></tr>";
+    for (const t of rows.slice(0,30)){
+      const g = parseFloat(t.realized_gain);
+      h += `<tr><td>${t.timestamp.slice(2,10)}</td><td>${t.symbol}</td><td>${parseFloat(t.quantity)}</td>
+        <td style="text-align:right" class="${cls(g)}">${fmtS(g)}</td></tr>`;
+    }
+    h += `</table><div class="sub" style="margin-top:8px">${rows.length} trades · net <span class="${cls(net)}">${fmtS(net)}</span>${rows.length>30?" · showing latest 30":""}</div>`;
+    $(elId).innerHTML = h;
+  }
+  function initPills(pillsId, elId, list, storeKey){
+    $(pillsId).innerHTML = ["90d","YTD","All"].map(r=>`<button class="pill" data-r="${r}">${r}</button>`).join(" ");
+    document.querySelectorAll("#"+pillsId+" .pill").forEach(p=>p.onclick=()=>{ localStorage.setItem(storeKey,p.dataset.r); renderClosed(list, elId, pillsId, storeKey); });
+    renderClosed(list, elId, pillsId, storeKey);
+  }
+  initPills("ctpills","closedopts",optTrades,"dash_ct");
+  initPills("cspills","closedstks",stkTrades,"dash_cs");
+
+  function renderCal(){
+    const base = new Date(); base.setDate(1); base.setMonth(base.getMonth()+calOff);
+    const y = base.getFullYear(), m = base.getMonth();
+    $("callabel").textContent = base.toLocaleString("en",{month:"long",year:"numeric"});
+    const daily = {};
+    for (const t of optTrades){
+      const d = new Date(t.timestamp);
+      if (d.getFullYear()===y && d.getMonth()===m){
+        const k = d.getDate(); daily[k] = (daily[k]||0) + parseFloat(t.realized_gain);
+      }
+    }
+    const first = (new Date(y,m,1).getDay()+6)%7, days = new Date(y,m+1,0).getDate();
+    let h = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;font-size:11px;">';
+    for (const w of ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]) h += `<div style="text-align:center;color:var(--mut);padding:2px">${w}</div>`;
+    for (let i=0;i<first;i++) h += "<div></div>";
+    let mTot = 0;
+    for (let d=1; d<=days; d++){
+      const v = daily[d]; if (v) mTot += v;
+      const bg = v==null ? "transparent" : (v>=0 ? "var(--chipok)" : "var(--chipbad)");
+      const tc = v==null ? "var(--mut)" : (v>=0 ? "var(--chipokt)" : "var(--chipbadt)");
+      h += `<div style="border:1px solid var(--rowline);border-radius:8px;padding:5px 4px;min-height:44px;background:${bg}">
+        <div style="color:var(--mut)">${d}</div>
+        ${v!=null?`<div style="color:${tc};font-weight:600">${fmtS(Math.round(v))}</div>`:""}</div>`;
+    }
+    h += "</div>";
+    h += `<div class="sub" style="margin-top:8px">Month total: <span class="${cls(mTot)}" style="font-weight:600">${fmtS(Math.round(mTot))}</span></div>`;
+    $("calendar").innerHTML = h;
+  }
+  $("calprev").onclick = ()=>{ calOff--; renderCal(); };
+  $("calnext").onclick = ()=>{ calOff++; renderCal(); };
+  renderCal();
+
+  // ---- M5: stock positions tables ----
+  try {
+    const chunk = (a,n)=>a.length?[a.slice(0,n),...chunk(a.slice(n),n)]:[];
+    async function stockTable(acct, elId){
+      const pos = (await call("get_equity_positions",{account_number:acct})).positions || [];
+      if (!pos.length){ $(elId).innerHTML = '<div class="sub" style="padding:10px">No positions.</div>'; return {mv:0,plv:0}; }
+      const syms = pos.map(p=>p.symbol);
+      const qmap = {};
+      for (const c of chunk(syms,18)){
+        const qs = await call("get_equity_quotes",{symbols:c});
+        for (const r of (qs.results||[])) if (r.quote) qmap[r.quote.symbol] = parseFloat(r.quote.last_trade_price);
+      }
+      let rows = pos.map(p=>{
+        const q = parseFloat(p.quantity), avg = parseFloat(p.average_buy_price||0), px = qmap[p.symbol];
+        const mv = px!=null? q*px : null, cost = q*avg;
+        return { sym:p.symbol, q, avg, px, mv, pl: (mv!=null&&avg>0)? mv-cost : null,
+                 plp:(mv!=null&&avg>0&&cost>0)? (mv-cost)/cost*100 : null };
+      }).sort((a,b)=>(b.mv||0)-(a.mv||0));
+      const tot = rows.reduce((s,r)=>s+(r.mv||0),0);
+      const totPl = rows.reduce((s,r)=>s+(r.pl||0),0);
+      let h = "<table><tr><th>Symbol</th><th>Qty</th><th>Avg cost</th><th>Price</th><th style='text-align:right'>Value</th><th style='text-align:right'>P/L</th><th style='text-align:right'>P/L %</th><th style='text-align:right'>% sleeve</th></tr>";
+      for (const r of rows){
+        const pct = tot? (r.mv||0)/tot*100 : 0;
+        h += `<tr><td><b>${r.sym}</b></td><td>${r.q%1?r.q.toFixed(3):r.q}</td>
+          <td>${r.avg?("$"+r.avg.toFixed(2)):"—"}</td><td>${r.px!=null?("$"+r.px.toFixed(2)):"n/a"}</td>
+          <td style="text-align:right">${r.mv!=null?fmt(r.mv):"n/a"}</td>
+          <td style="text-align:right" class="${r.pl==null?'':cls(r.pl)}">${r.pl==null?"—":fmtS(r.pl)}</td>
+          <td style="text-align:right" class="${r.plp==null?'':cls(r.plp)}">${r.plp==null?"—":r.plp.toFixed(1)+"%"}</td>
+          <td style="text-align:right">${pct.toFixed(1)}%${pct>25?' <span title="concentration >25% of sleeve">⚠️</span>':''}</td></tr>`;
+      }
+      h += `</table><div class="sub" style="margin-top:8px">${rows.length} positions · value ${fmt(tot)} · unrealized <span class="${cls(totPl)}">${fmtS(totPl)}</span></div>`;
+      $(elId).innerHTML = h;
+      return {mv:tot, plv:totPl};
+    }
+    const s1 = await stockTable("878912005","stk2005");
+    const s2 = await stockTable("429049521","stk9521");
+    $("stkstats").innerHTML =
+      statCard("Stocks value", fmt(s1.mv), "Stocks ••••2005", null) +
+      statCard("Unrealized P/L", fmtS(s1.plv), "Stocks ••••2005", s1.plv) +
+      statCard("IRA value", fmt(s2.mv), "Roth IRA ••••9521", null) +
+      statCard("IRA unrealized", fmtS(s2.plv), "Roth IRA ••••9521", s2.plv);
+  } catch(e){ warn("Stock positions unavailable"); $("stk2005").innerHTML = $("stk9521").innerHTML = '<div class="sub" style="padding:10px">Could not load — use Reload.</div>'; }
 
   // ---- structures (M4 flagship) ----
   let openPrem=null, openRisk=null, nStruct=null;
@@ -445,7 +583,7 @@ function renderChart(){
           ? `<span class="chip warn" title="${st.comp.rule} · ${st.comp.flags.join(" · ")}">${st.comp.flags.length} flag${st.comp.flags.length>1?"s":""}</span>`
           : `<span class="chip bad" title="${st.comp.flags.join(" · ")}">off-book</span>`;
         rows += `<tr>
-          <td>${(st.opened||"").slice(0,10)}</td>
+          <td>${(st.opened||"").slice(2,10)}</td>
           <td><span class="badge ${st.name==="BWB"?"bwb":""}">${st.name}</span><div class="legs">${legsTxt}</div></td>
           <td>${st.strikes.join(" / ")}</td>
           <td>${st.expiry.slice(5)}<div class="legs">${dteLive} DTE${st.pending?' · ⏳ pending order':''}</div></td>
