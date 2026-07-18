@@ -8,10 +8,12 @@
 :root { color-scheme: light dark; }
 html[data-theme="light"] { color-scheme: light;
   --grn:#16a34a; --red:#dc2626; --acc:#1d6fc4; --bg:#f7f7fb; --card:#ffffff;
-  --ink:#1a1a2e; --mut:#6b7280; --brd:#e5e7eb; --amber:#b45309; --amberbg:#fef3c7; --grid:#eef0f4; --skel1:#ececf2; --skel2:#f6f6fa; }
+  --ink:#1a1a2e; --mut:#6b7280; --brd:#e5e7eb; --amber:#b45309; --amberbg:#fef3c7; --grid:#eef0f4; --skel1:#ececf2; --skel2:#f6f6fa;
+  --chipok:#dcfce7; --chipokt:#166534; --chipwarn:#fef3c7; --chipwarnt:#92400e; --chipbad:#fee2e2; --chipbadt:#991b1b; --rowline:#f0f0f4; }
 html[data-theme="dark"] { color-scheme: dark;
   --grn:#4ade80; --red:#f87171; --acc:#5aa2e8; --bg:#101216; --card:#1a1d23;
-  --ink:#e8eaed; --mut:#9aa0a6; --brd:#2a2e35; --amber:#fbbf24; --amberbg:#3a2e10; --grid:#242830; --skel1:#20242b; --skel2:#2a2e36; }
+  --ink:#e8eaed; --mut:#9aa0a6; --brd:#2a2e35; --amber:#fbbf24; --amberbg:#3a2e10; --grid:#242830; --skel1:#20242b; --skel2:#2a2e36;
+  --chipok:#14331f; --chipokt:#6ee7a0; --chipwarn:#3a2e10; --chipwarnt:#fbbf24; --chipbad:#3a1414; --chipbadt:#f87171; --rowline:#22262d; }
 * { box-sizing:border-box; margin:0; }
 body { font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Arial,sans-serif;
   background:var(--bg); color:var(--ink); padding:18px; font-size:14px; max-width:1100px; margin:0 auto;
@@ -47,6 +49,19 @@ h1 { font-size:20px; font-weight:600; }
 .soon b { color:var(--ink); font-weight:600; }
 .mode { border:1px solid var(--brd); background:var(--card); color:var(--mut); border-radius:8px; padding:5px 10px; cursor:pointer; font-size:13px; }
 section[hidden] { display:none; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; color:var(--mut); font-weight:500; font-size:11.5px; padding:7px 8px; border-bottom:1px solid var(--brd); white-space:nowrap; }
+td { padding:8px; border-bottom:1px solid var(--rowline); white-space:nowrap; vertical-align:top; }
+tr:last-child td { border-bottom:none; }
+.badge { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600;
+  background:var(--chipok); color:var(--chipokt); }
+.badge.bwb { background:var(--chipwarn); color:var(--chipwarnt); }
+.legs { color:var(--mut); font-size:11px; margin-top:3px; }
+.chip { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; cursor:help; }
+.chip.ok { background:var(--chipok); color:var(--chipokt); }
+.chip.warn { background:var(--chipwarn); color:var(--chipwarnt); }
+.chip.bad { background:var(--chipbad); color:var(--chipbadt); }
+.tbl-wrap { overflow-x:auto; }
 </style>
 </head>
 <body>
@@ -82,6 +97,13 @@ section[hidden] { display:none; }
 <section id="t-options" hidden>
   <div class="scope">Options desk — Stocks account ••••2005 only</div>
   <div class="grid-stat" id="stats"></div>
+
+  <div class="card" style="margin-bottom:14px;">
+    <div style="font-size:14px; font-weight:600; margin-bottom:2px;">Open structures</div>
+    <div class="sub" style="margin-bottom:10px;">One row = one position · compliance vs your rulebook (zones, not walls) · hover the chip for details</div>
+    <div class="tbl-wrap" id="structs"><div class="skel" style="height:120px">.</div></div>
+  </div>
+
   <div class="card" style="margin-bottom:14px;">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
       <div style="font-size:14px; font-weight:600;">Realized options P/L</div>
@@ -91,7 +113,6 @@ section[hidden] { display:none; }
     </div>
     <div class="chartbox"><canvas id="plchart" role="img" aria-label="Realized options profit and loss over time"></canvas></div>
   </div>
-  <div class="soon">🦋 <b>Open structures table</b> (spreads &amp; BWBs as single rows, max loss, Δ/Θ, rule-compliance chips) — next milestone <b>M4</b>.</div>
 </section>
 
 <section id="t-stocks" hidden>
@@ -125,7 +146,6 @@ const fmtS = v => (v<0?"-$":"+$") + Math.abs(v).toLocaleString(undefined,{maximu
 const cls = v => v>=0 ? "pos" : "neg";
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
-// ---- theme ----
 function applyTheme(t){
   document.documentElement.setAttribute("data-theme", t);
   $("modebtn").textContent = t==="dark" ? "☀️" : "🌙";
@@ -134,7 +154,6 @@ function applyTheme(t){
 }
 $("modebtn").onclick = () => applyTheme(document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark");
 
-// ---- tabs ----
 document.querySelectorAll("#tabs .tab").forEach(b => b.onclick = () => {
   document.querySelectorAll("#tabs .tab").forEach(x=>x.classList.toggle("on", x===b));
   ["overview","options","stocks","crypto"].forEach(t => $("t-"+t).hidden = (t!==b.dataset.t));
@@ -159,27 +178,79 @@ function isOption(t){
   const q = parseFloat(t.quantity);
   return Number.isInteger(q) && q > 0 && q <= 20;
 }
-function maxLossOf(legs, credit){
-  const ks = legs.map(l=>l.strike);
-  const pts = [0, ...ks, Math.max(...ks)*2];
-  let worst = Infinity;
-  for (const S of pts){
-    let v = credit;
-    for (const l of legs){
-      const intr = l.pc==="put" ? Math.max(l.strike-S,0) : Math.max(S-l.strike,0);
-      v += (l.side==="long"?1:-1) * intr * l.qty * l.mult;
-    }
-    worst = Math.min(worst, v);
+
+// ---------- structure math (TDD §4-6, smoke-tested) ----------
+function detect(legs){
+  const puts = legs.filter(l=>l.pc==="put"), calls = legs.filter(l=>l.pc==="call");
+  const strikes = [...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b);
+  if (legs.length===1){ const l=legs[0];
+    return l.pc==="call" ? (l.side==="long"?"Long Call":"CC") : (l.side==="long"?"Long Put":"CSP"); }
+  if (puts.length===legs.length && strikes.length===2 && legs.length===2){
+    const hi=legs.find(l=>l.strike===strikes[1]), lo=legs.find(l=>l.strike===strikes[0]);
+    if (hi && lo && hi.side==="short" && lo.side==="long") return "PCS";
+    if (hi && lo && hi.side==="long" && lo.side==="short") return "Put Debit";
   }
-  return worst;
+  if (puts.length===legs.length && strikes.length===3){
+    const mid=legs.filter(l=>l.strike===strikes[1]);
+    if (mid.length && mid.every(l=>l.side==="short")){
+      const wLo=strikes[1]-strikes[0], wHi=strikes[2]-strikes[1];
+      return Math.abs(wLo-wHi)>0.01 ? "BWB" : "Fly";
+    }
+  }
+  if (calls.length===legs.length && strikes.length===2) return "CCS";
+  return "Custom("+legs.length+")";
 }
+function netCredit(legs){ return legs.reduce((s,l)=>s+(l.side==="short"?l.per:-l.per)*l.qty*l.mult,0); }
+function payoff(legs, credit, S){
+  let v=credit;
+  for (const l of legs){ const intr = l.pc==="put"?Math.max(l.strike-S,0):Math.max(S-l.strike,0);
+    v += (l.side==="long"?1:-1)*intr*l.qty*l.mult; }
+  return v;
+}
+function maxLoss(legs, credit){
+  const ks=legs.map(l=>l.strike); const pts=[0,...ks,Math.max(...ks)*2];
+  return Math.min(...pts.map(S=>payoff(legs,credit,S)));
+}
+function breakevens(legs, credit){
+  const ks=[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b);
+  const pts=[0,...ks,Math.max(...ks)*2]; const bes=[];
+  for (let i=0;i<pts.length-1;i++){
+    const a=pts[i],b=pts[i+1],va=payoff(legs,credit,a),vb=payoff(legs,credit,b);
+    if ((va<0)!==(vb<0)) bes.push(Math.round(a + (0-va)*(b-a)/(vb-va)));
+  }
+  return bes;
+}
+// ---------- compliance vs RULEBOOK (zones, not walls) ----------
+function compliance(st){
+  const flags = [];
+  const dteEntry = Math.round((new Date(st.expiry) - new Date(st.opened)) / 864e5);
+  if (st.name === "PCS"){
+    const w = st.strikes[st.strikes.length-1] - st.strikes[0];
+    if (w > 20) flags.push(`width ${w} beyond acceptable ≤20 (S1)`);
+    if (dteEntry < 5 || dteEntry > 16) flags.push(`entry DTE ${dteEntry} outside 7–14±2 (S1)`);
+    return { level: flags.length? "warn":"ok", flags, rule:"S1 · PCS", dteEntry };
+  }
+  if (st.name === "BWB" || st.name === "Fly"){
+    const narrow = Math.min(st.strikes[1]-st.strikes[0], st.strikes[2]-st.strikes[1]);
+    const s2 = dteEntry <= 28;
+    if (s2){
+      if (narrow < 20 || narrow > 30) flags.push(`narrow wing ${narrow} outside 20–30 (S2)`);
+      if (dteEntry < 19 || dteEntry > 23) flags.push(`entry DTE ${dteEntry} vs 21±2 (S2)`);
+      return { level: flags.length? "warn":"ok", flags, rule:"S2 · BWB 13%", dteEntry };
+    }
+    if (dteEntry < 30 || dteEntry > 60) flags.push(`entry DTE ${dteEntry} outside 30–60 (S3)`);
+    return { level: flags.length? "warn":"ok", flags, rule:"S3 · BWB classic", dteEntry };
+  }
+  if (st.name === "CSP" || st.name === "CC") return { level:"ok", flags, rule:"wheel leg", dteEntry };
+  return { level:"bad", flags:["no matching strategy chapter in rulebook"], rule:"off-book", dteEntry };
+}
+
 function statCard(lbl, val, ctx, signed){
   const c = signed==null ? "" : cls(signed);
   return `<div class="card stat"><div class="lbl">${lbl}</div>
     <div class="val ${c}">${val}</div><div class="ctx">${ctx||""}</div></div>`;
 }
 
-// ---- chart with granularity ----
 let chart, monthBuckets = [], optTrades = [];
 function weekBuckets(){
   const m = {};
@@ -227,12 +298,12 @@ function renderChart(){
   $("asof").textContent = "live from Robinhood · " + new Date().toLocaleString();
   $("stats").innerHTML = Array(8).fill('<div class="card stat skel" style="height:86px">.</div>').join("");
   $("pills").innerHTML = ["30d","90d","6M","YTD","ALL"].map(r=>`<button class="pill" data-r="${r}">${r}</button>`).join(" ");
-  $("gran").innerHTML = ["W","M"].map(g=>`<button class="pill" data-g="${g}" title="${g==='W'?'weekly':'monthly'}">${g==='W'?'Week':'Month'}</button>`).join(" ");
+  $("gran").innerHTML = ["W","M"].map(g=>`<button class="pill" data-g="${g}">${g==='W'?'Week':'Month'}</button>`).join(" ");
   document.querySelectorAll("#pills .pill").forEach(p => p.onclick = () => { localStorage.setItem("dash_range", p.dataset.r); renderChart(); });
   document.querySelectorAll("#gran .pill").forEach(p => p.onclick = () => { localStorage.setItem("dash_gran", p.dataset.g); renderChart(); });
   restoreTab();
 
-  // ---- accounts + per-asset totals ----
+  // ---- accounts + per-asset ----
   const ports = await Promise.allSettled(ACCOUNTS.map(a => call("get_portfolio", {account_number:a.num})));
   let net = 0, acctHtml = "", stkVal = 0, cryVal = 0, cash = 0, bp = 0, marginDebit = 0;
   ports.forEach((p,i) => {
@@ -265,7 +336,7 @@ function renderChart(){
     statCard("Stocks value", ports[0].status==="fulfilled"?fmt(parseFloat(ports[0].value.equity_value)):"n/a", "Stocks ••••2005", null) +
     statCard("IRA value", ports[2].status==="fulfilled"?fmt(parseFloat(ports[2].value.total_value)):"n/a", "Roth IRA ••••9521", null);
 
-  // ---- realized P/L ----
+  // ---- realized ----
   let total = null;
   try {
     const rlz = await call("get_realized_pnl", {account_number:"878912005", span:"all", asset_classes:["option"]});
@@ -275,7 +346,7 @@ function renderChart(){
                    label: new Date(b.start_time).toLocaleString("en",{month:"short",year:"2-digit"}) }));
   } catch(e){ warn("Realized P/L unavailable — chart and totals degraded"); }
 
-  // ---- trade history ----
+  // ---- history ----
   let wr="—", aw="—", al="—", reconcile=null, ytd=0, mtd=0;
   try {
     let trades=[], cursor;
@@ -299,32 +370,97 @@ function renderChart(){
   } catch(e){ warn("Trade history unavailable — win-rate cards degraded"); }
   renderChart();
 
-  // ---- open structures ----
+  // ---- structures (M4 flagship) ----
   let openPrem=null, openRisk=null, nStruct=null;
   try {
     const pos = (await call("get_option_positions", {account_number:"878912005", nonzero:true})).positions || [];
-    if (pos.length){
-      const inst = await call("get_option_instruments", {ids: pos.map(p=>p.option_id).join(",")});
+    if (!pos.length){ $("structs").innerHTML = '<div class="sub" style="padding:12px">No open option positions.</div>'; openPrem=openRisk=nStruct=0; }
+    else {
+      const ids = pos.map(p=>p.option_id);
+      const inst = await call("get_option_instruments", {ids: ids.join(",")});
       const im = {}; for (const i of (inst.instruments||[])) im[i.id]=i;
+      let qm = {};
+      try {
+        const qs = await call("get_option_quotes", {instrument_ids: ids});
+        for (const r of (qs.results||[])) if (r.quote) qm[r.quote.instrument_id]=r.quote;
+      } catch(e){ warn("Option marks unavailable — open P/L shows n/a"); }
+
       const groups = {};
       for (const p of pos){
         const key = p.chain_id + "|" + p.expiration_date;
+        const q = qm[p.option_id] || {};
         (groups[key] = groups[key] || []).push({
           side:p.type, qty:parseFloat(p.quantity), per:Math.abs(parseFloat(p.average_price))/100,
           strike:parseFloat(im[p.option_id]?.strike_price||0), pc:im[p.option_id]?.type||"put",
-          mult:parseFloat(p.trade_value_multiplier||100) });
+          mult:parseFloat(p.trade_value_multiplier||100), sym:p.chain_symbol,
+          expiry:p.expiration_date, opened:p.opened_at,
+          mark: q.mark_price!=null ? parseFloat(q.mark_price) : null,
+          delta: q.delta!=null ? parseFloat(q.delta) : null,
+          theta: q.theta!=null ? parseFloat(q.theta) : null,
+          pending: ["pending_buy_quantity","pending_sell_quantity"].some(k=>parseFloat(p[k]||0)>0) });
       }
-      openPrem = 0; openRisk = 0; nStruct = 0;
-      for (const legs of Object.values(groups)){
-        nStruct++;
-        let credit = 0;
-        for (const l of legs) credit += (l.side==="short" ? l.per : -l.per) * l.qty * l.mult;
-        openPrem += credit;
-        const ml = maxLossOf(legs, credit);
-        if (ml < 0) openRisk += -ml;
+      const structs = Object.values(groups).map(legs => {
+        legs.sort((a,b)=>a.strike-b.strike);
+        const credit = netCredit(legs);
+        const strikes = [...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b);
+        let pl = 0, plOK = true, nd = 0, nt = 0, gOK = true;
+        for (const l of legs){
+          if (l.mark==null){ plOK=false; } else pl += (l.side==="short" ? (l.per-l.mark) : (l.mark-l.per)) * l.qty * l.mult;
+          if (l.delta==null||l.theta==null){ gOK=false; } else {
+            const sg = l.side==="long"?1:-1;
+            nd += sg * l.delta * l.qty * 100;
+            nt += sg * l.theta * l.qty;
+          }
+        }
+        const st = { legs, name:detect(legs), credit, strikes, pl:plOK?pl:null,
+          ml:maxLoss(legs,credit), bes:breakevens(legs,credit),
+          nd:gOK?nd:null, nt:gOK?nt:null,
+          sym:legs[0].sym, expiry:legs[0].expiry,
+          opened: legs.map(l=>l.opened).sort()[0],
+          pending: legs.some(l=>l.pending) };
+        st.comp = compliance({...st, opened:st.opened});
+        return st;
+      }).sort((a,b)=>a.expiry.localeCompare(b.expiry));
+
+      // S6 rulebook: overlapping strikes on same expiry
+      for (let i=0;i<structs.length;i++) for (let j=i+1;j<structs.length;j++){
+        if (structs[i].expiry===structs[j].expiry && structs[i].strikes.some(k=>structs[j].strikes.includes(k))){
+          const w = "shares strikes with another structure on same expiry — Robinhood may re-pair legs (rule S6)";
+          structs[i].comp.flags.push(w); structs[j].comp.flags.push(w);
+          if (structs[i].comp.level==="ok") structs[i].comp.level="warn";
+          if (structs[j].comp.level==="ok") structs[j].comp.level="warn";
+        }
       }
-    } else { openPrem = 0; openRisk = 0; nStruct = 0; }
-  } catch(e){ warn("Open positions unavailable — open premium/risk degraded"); }
+
+      openPrem = 0; openRisk = 0; nStruct = structs.length;
+      let rows = "";
+      for (const st of structs){
+        openPrem += st.credit;
+        if (st.ml < 0) openRisk += -st.ml;
+        const dteLive = Math.max(0, Math.round((new Date(st.expiry) - Date.now())/864e5));
+        const legsTxt = st.legs.map(l=>`${l.side==="short"?"−":"+"}${l.qty} ${l.strike}${l.pc[0].toUpperCase()}`).join("  ");
+        const chip = st.comp.level==="ok"
+          ? `<span class="chip ok" title="${st.comp.rule} · entry DTE ${st.comp.dteEntry} · all checks in zone">rules ✓</span>`
+          : st.comp.level==="warn"
+          ? `<span class="chip warn" title="${st.comp.rule} · ${st.comp.flags.join(" · ")}">${st.comp.flags.length} flag${st.comp.flags.length>1?"s":""}</span>`
+          : `<span class="chip bad" title="${st.comp.flags.join(" · ")}">off-book</span>`;
+        rows += `<tr>
+          <td>${(st.opened||"").slice(0,10)}</td>
+          <td><span class="badge ${st.name==="BWB"?"bwb":""}">${st.name}</span><div class="legs">${legsTxt}</div></td>
+          <td>${st.strikes.join(" / ")}</td>
+          <td>${st.expiry.slice(5)}<div class="legs">${dteLive} DTE${st.pending?' · ⏳ pending order':''}</div></td>
+          <td class="${cls(st.credit)}">${fmtS(st.credit)}</td>
+          <td class="${st.pl==null?'':cls(st.pl)}">${st.pl==null?"n/a":fmtS(st.pl)}</td>
+          <td class="neg">${st.ml<0?fmt(st.ml):"$0"}</td>
+          <td>${st.bes.length?st.bes.join(" / "):"—"}</td>
+          <td>${st.nd==null?"n/a":(st.nd>0?"+":"")+st.nd.toFixed(0)+"Δ · "+st.nt.toFixed(0)+"Θ"}</td>
+          <td>${chip}</td></tr>`;
+      }
+      $("structs").innerHTML = `<table>
+        <tr><th>Opened</th><th>Strategy</th><th>Strikes</th><th>Expiry</th><th>Net premium</th><th>Open P/L</th><th>Max loss</th><th>Break-even</th><th>Net Δ/Θ</th><th>Rules</th></tr>
+        ${rows}</table>`;
+    }
+  } catch(e){ warn("Open positions unavailable — structures table degraded"); $("structs").innerHTML = '<div class="sub" style="padding:12px">Could not load structures — use Reload.</div>'; }
 
   $("stats").innerHTML =
     statCard("Total options P/L (all-time)", total!=null?fmtS(total):"n/a", "realized · broker aggregate", total) +
