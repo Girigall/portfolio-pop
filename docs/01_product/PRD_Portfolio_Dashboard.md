@@ -99,6 +99,10 @@ Pop pastes a screenshot of a candidate trade in chat → Claude extracts the set
 **Framing rule (non-negotiable):** the validator checks Pop's own written rules. It never advises, authorizes, or executes. The decision and the click are Pop's, every time.
 Origin: legacy rule engine, ported and smoke-tested against real trades (see PROJECT_LINEAGE).
 
+### F10 — CSV Reader (M8 scope) `[P0]` *(Pop's architecture, 2026-07-18)*
+An "Import CSV" feature in the M8 web app: Pop downloads Robinhood's activity CSV (~10 min weekly, accepted cost of independence), drops it into the reader → in-browser parse → normalize to master schema → dedupe → append to the master CSVs. Same engine as the proven backfill (`backfill_enrich.py`, 100% coverage). Missed weeks are harmless: next import catches up, dedupe prevents doubles.
+**Data honesty rule:** CSV feeds all HISTORICAL sections fully. LIVE sections (open-structure marks, account values) are not in any broker CSV — they display "as of <last update>" with source labeled (courier when available, else last import). Never silently stale.
+
 ## 6b. Broker portability (the Tastytrade scenario)
 
 The archive is deliberately broker-agnostic: generic fields (symbol/strike/expiry — no Robinhood IDs as keys), a `broker` column on every row, provenance recorded. If Pop switches brokers (Tastytrade under consideration): history in Drive is untouched, the new broker's connector (native API or SnapTrade) maps into the same ledger, the dashboard continues with a mixed-broker history. **Pop's data never lives inside any broker or platform.**

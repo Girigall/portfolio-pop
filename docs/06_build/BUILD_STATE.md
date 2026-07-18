@@ -27,7 +27,7 @@
 | M5 | **Closed trades + stocks sections** | Full v1 surface | PRD F5–F6 | R5, D4 | ✅ 2026-07-18 |
 | M6 | **F9 validator** — screenshot → confirm → validate → journal | Pre-trade workflow | TDD §5.1, RULEBOOK §0.1 | V1–V4 | ✅ 2026-07-18 |
 | M7 | **Bake** — two Fridays + failure drill | v1 done | TEST_PLAN §6 | bake gates | ⬜ |
-| M8 | **Standalone web app (THE product)** — port dashboard to static SPA on GitHub Pages, reads history from repo; live-account names; retire preview client | Dashboard at a URL, any device, zero AI dependency | TDD §1, Pop directive 2026-07-18 | new D-tests | ⬜ |
+| M8 | **Standalone web app (THE product)** — port dashboard to static SPA on GitHub Pages, reads history from repo; F10 CSV Reader (import/normalize/append in-browser); live-account names; retire preview client | Dashboard at a URL, any device, zero AI dependency | TDD §1, Pop directive 2026-07-18 | new D-tests | ⬜ |
 | M9 | **Collector independence** — local Python script + macOS cron replaces the Claude courier | Pipeline with zero AI dependency | TDD §1 comp.2 | A-tests rerun | ⬜ |
 
 ## Session log
