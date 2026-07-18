@@ -27,7 +27,7 @@
 | M5 | **Closed trades + stocks sections** | Full v1 surface | PRD F5–F6 | R5, D4 | ✅ 2026-07-18 |
 | M6 | **F9 validator** — screenshot → confirm → validate → journal | Pre-trade workflow | TDD §5.1, RULEBOOK §0.1 | V1–V4 | ✅ 2026-07-18 |
 | M7 | **Bake** — two Fridays + failure drill | v1 done | TEST_PLAN §6 | bake gates | ⬜ |
-| M8 | **Standalone web app (THE product)** — port dashboard to static SPA on GitHub Pages, reads history from repo; F10 CSV Reader (import/normalize/append in-browser); live-account names; retire preview client | Dashboard at a URL, any device, zero AI dependency | TDD §1, Pop directive 2026-07-18 | new D-tests | ⬜ |
+| M8 | **Standalone web app (THE product)** — static SPA at repo root (`index.html`), reads history CSVs via fetch; F10 Reader with FIFO pairing + high-water-mark + cross-source dedupe; real account names (Options/Equity/Crypto) | Dashboard at a URL, any device, zero AI dependency | TDD §1 | P1–P6 | ✅ built 2026-07-18 · ⏳ Pop enables Pages (Settings→Pages→main/root) |
 | M9 | **Collector independence** — local Python script + macOS cron replaces the Claude courier | Pipeline with zero AI dependency | TDD §1 comp.2 | A-tests rerun | ⬜ |
 
 ## Session log
@@ -39,5 +39,7 @@
 | 2026-07-17 | **M1 shipped:** archive_generate.py + archive_job.md, first snapshot (94 trades / 41 positions / 5 accounts), tests A1/A2/A5 passed, options ledger reconciled to broker exact ($12,337.24), Friday task scheduled (5:34 PM local). Notable: Jul 17 spread closed early +$570; three BWBs open (Jul 29, Aug 3, Aug 6); Jul 29 fly has pending closing order | this session |
 
 ## WIP notes
+
+M8 notes: Reader P/L is net-of-fees (broker figures differ ~$1-2/trade — disclosed in UI); exercise/assignment closes flagged needs_review; compliance chips deferred on product (snapshots lack opened_at — add column at next courier run, then port chips); preview artifact stays until Pop confirms Pages URL works (test P1), then retire. Golden test: full-CSV pairing 179 closes, hwm guard returns 0 when current ✓.
 
 M3 notes: stat cards adjusted vs PRD F2 for data honesty — 'avg time in trade' and 'avg % return/risk' deferred to M4 (need strike-memory pairing); replaced with YTD + this-month realized. In-page R1 reconciliation footer (per-trade sum vs broker aggregate) renders live.

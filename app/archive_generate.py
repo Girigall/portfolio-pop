@@ -54,10 +54,18 @@ def main():
         meta["failures"].append("trades: simulated pull failure — file untouched")
     else:
         existing = load_rows(lp); seen = {r["trade_id"] for r in existing}
+        # cross-source dedupe: skip connector rows already imported by the F10 reader
+        # (reader IDs differ; match on day+symbol+qty with $5 gain tolerance for fee variance)
+        reader_keys = [(r["closed_at"][:10], r["symbol"], r["quantity"], float(r["realized_gain"] or 0))
+                       for r in existing if r.get("source") == "reader"]
         new = []
         for t in run.get("trades", []):
             tid = f'{t["timestamp"]}_{t["symbol"] or "UNKNOWN"}_{t["quantity"]}_{t["realized_gain"]}'
             if tid in seen: continue
+            g = float(t["realized_gain"] or 0)
+            if any(k[0] == t["timestamp"][:10] and k[1] == (t["symbol"] or "UNKNOWN")
+                   and k[2] == str(t["quantity"]) and abs(k[3] - g) <= 5 for k in reader_keys):
+                continue  # reader already recorded this trade
             new.append({"trade_id": tid, "closed_at": t["timestamp"], "account": run["account_last4"],
                         "symbol": t["symbol"] or "UNKNOWN",
                         "asset_class": classify(t["symbol"], t["quantity"]),
