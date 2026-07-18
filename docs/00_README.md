@@ -14,7 +14,7 @@
 
 ## The one-paragraph summary
 
-A Cowork dashboard reading live Robinhood data + a weekly archive job writing permanent history to your Drive. Presentation stolen from Premium Insights (audit winner), math computed from broker ground truth (what every competitor failed), structures — including BWBs — as single honest rows with payoff-derived max loss. History is append-only and yours forever. Stage 2 (commercial product) inherits everything.
+A standalone web dashboard (URL, any device) reading Pop's own history data from his GitHub repo + a weekly collector appending Robinhood data to files Pop owns. Presentation stolen from Premium Insights (audit winner), math computed from broker ground truth (what every competitor failed), structures — including BWBs — as single honest rows with payoff-derived max loss. History is append-only and yours forever. Stage 2 (commercial product) inherits everything.
 
 ## How to review fast
 

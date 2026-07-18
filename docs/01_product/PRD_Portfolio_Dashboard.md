@@ -11,9 +11,11 @@
 
 A portfolio dashboard that shows **correct numbers** with **best-in-class presentation** — the Premium Insights look with math that ties to the broker to the cent, plus the one thing no platform on the market does: **multi-leg options structures (including broken-wing butterflies) displayed as single, honestly-priced positions.**
 
-Two stages:
-- **Stage 1 (this PRD):** personal dashboard for Pop, built in Cowork, live Robinhood data, permanent history archive.
-- **Stage 2 (separate PRD later):** commercial product. Stage 1 is its living prototype and seed dataset.
+**The product is a standalone digital product — no dependency on any AI session to use it:**
+- **The Dashboard (M8):** a web application at a real URL (GitHub Pages), open from any browser or device. Reads Pop's history data directly from his GitHub repository.
+- **The Data Pipeline:** a weekly collector that appends Robinhood data to Pop's files and pushes to GitHub. The collector is a *replaceable courier*: v1 uses a Claude scheduled task (only because Robinhood's official agent API authenticates through it); M9 replaces it with a local script + cron on Pop's Mac — zero AI involvement.
+- **The current in-app dashboard** is a temporary preview client only. It is NOT the product and is retired when M8 ships.
+- **Stage 2 (separate PRD later):** commercial SaaS. Everything above is its prototype and seed dataset.
 
 ## 2. Problem & evidence
 
@@ -48,7 +50,7 @@ Pop tested the market with his real data (619-row Robinhood CSV, May 2025–Jul 
 - ❌ Trade execution or any write action to Robinhood (hard ban, per project rules)
 - ❌ Per-coin crypto detail (connector does not expose it; account-level crypto totals only)
 - ❌ Tax reporting (archive supports future tax work; no tax UI in v1)
-- ❌ Multi-user, auth, hosting (Stage 2 concerns)
+- ❌ Multi-user + auth (Stage 2 SaaS concerns) — single-user hosting IS in scope (M8, GitHub Pages)
 - ❌ Full greeks panel (v1.1) — but net delta + theta per structure ARE in v1 (F4): zero extra data cost, and the F9 validator needs delta anyway
 
 ## 6. Features
@@ -116,13 +118,13 @@ The archive is deliberately broker-agnostic: generic fields (symbol/strike/expir
 | Closed-trade strikes unavailable pre-pipeline | Archive captures strikes while positions are open; historical gap documented, backfilled from Pop's CSV where possible |
 | Artifact declined/unavailable | All logic and archive live outside the artifact; dashboard is a view, not the system |
 | Scope creep | v1.1 parking lot at end of this doc; nothing enters v1 without Pop's sign-off |
-| **Cowork/Claude runtime dependency** (HAL review #1) | Dashboard + archive job run only inside Claude sessions. Mitigation: archive CSVs in Drive are the system of record and platform-independent; Stage 2 replaces the artifact with a standalone SPA (TDD §13). Stage 1 ships with this risk accepted and documented |
+| **Data-courier dependency** (HAL #1, reframed per Pop 2026-07-18) | The weekly collector currently rides Claude's Robinhood connection. The PRODUCT (M8 web app + files + GitHub) has zero Claude dependency. Roadmap to full pipeline independence: M9 local collector script + cron. Until M9, a missed Friday only delays data — never loses it |
 
 ## 9. Release plan
 
 1. Pop approves PRD + TDD + Design Spec + Test Plan
 2. Build archive job first (history starts accumulating immediately)
-3. Build dashboard artifact
+3. Build dashboard clients (preview first, M8 web app as the product)
 4. Acceptance run per Test Plan (golden numbers must reconcile)
 5. Two-week bake: weekly job runs twice, counts verified to only grow
 

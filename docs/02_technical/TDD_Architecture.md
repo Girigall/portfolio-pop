@@ -28,17 +28,20 @@
                                      └─────────────────────────────┘
 ```
 
-**Three components, deliberately decoupled:**
-1. **Weekly archive job** (scheduled task, Fridays after close) — the system of record. Works even if the dashboard is never opened.
-2. **Dashboard artifact** — a *view*: live MCP calls for "now", archive files for "history". Stateless; can be rebuilt anytime without data loss.
-3. **Archive files** — plain CSV in Pop's Drive. Portable, human-readable, platform-independent. Stage 2's seed data.
+**Components, deliberately decoupled (the product owes nothing to any AI runtime):**
+1. **Archive files** — plain CSV in Pop's Drive, mirrored to GitHub. THE system of record. Portable, human-readable, Excel-compatible.
+2. **Weekly collector** (Fridays after close) — the replaceable courier that appends Robinhood data to the archive and pushes to GitHub. v1 implementation: Claude scheduled task (Robinhood's official agent API authenticates through Claude). M9 implementation: local Python script + macOS cron — no AI anywhere in the loop.
+3. **Dashboard clients** — pure views over the data:
+   • **M8 web app (THE product):** static SPA at a URL (GitHub Pages), reads history from the GitHub repo, works in any browser/device with zero dependencies.
+   • In-app preview client (temporary): retired at M8.
 
 ## 2. Runtime & constraints
 
-- **Platform:** Cowork artifact (self-contained HTML; `window.cowork.callMcpTool`)
+- **M8 product client:** static HTML/JS at a URL; data via `fetch()` of repo-hosted CSVs; no proprietary APIs.
+- **Preview client (temporary):** self-contained HTML in-app; retired at M8
 - **Allowed CDN libs:** Chart.js 4.5.0 (charting), Grid.js 5.0.2 (tables) — exact pinned tags only
 - **No backend, no database** in v1 — archive CSVs are the persistence layer
-- **Light mode** design (per Cowork rendering)
+- **Dark mode default** with light toggle (Pop's preference)
 - **MCP result parsing:** `r.structuredContent ?? JSON.parse(r.content[0].text)` → payload root is `{data: {...}}`
 
 ## 3. Data sources (authoritative tool inventory)
@@ -151,7 +154,7 @@ Post-pipeline, classification becomes exact: closes are matched to remembered op
 ## 12. Security
 
 - Read-only: no order/write endpoints called, ever (project hard rule)
-- No credentials in artifact, archive, or docs
+- No credentials in any client, archive, or docs
 - Archive contains Pop's trade data only — lives in Pop's own Drive
 
 ## 13. Stage 2 migration notes (context, not v1 scope)

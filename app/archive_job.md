@@ -1,9 +1,9 @@
 # Archive Job — weekly procedure (M1)
 
-**Runs:** every Friday ~21:30 UTC (after US close) via Cowork scheduled task, or on demand ("run the archive job").
+**Runs:** every Friday after US close. Current courier (v1): Claude scheduled task. Target courier (M9): local script + cron, no AI. Same files, same rules either way.
 **Code:** `app/archive_generate.py` · **Contracts:** DATA_SPEC §4 · **Tests:** TEST_PLAN §3.
 
-## Procedure (what the scheduled Claude session does)
+## Procedure (what the courier does, whoever the courier is)
 
 1. **Pull from Robinhood connector** (account 878912005 unless noted):
    - `get_pnl_trade_history` span `all`, paginate via `next_cursor`
