@@ -22,7 +22,7 @@
 |---|---|---|---|---|---|
 | M1 | **Archive job** — weekly Friday task writing trades_ledger, positions_snapshots, accounts_history to `history/` | History starts accumulating | TDD §9, DATA_SPEC §4 | A1–A5 | ✅ 2026-07-17 |
 | M2 | **Backfill** — import Pop's official Robinhood CSV into ledger | Complete history since May 2025 | DATA_SPEC §4.1, §6 | A6, R4 | ✅ 2026-07-17 |
-| M3 | **Dashboard core** — `app/dashboard.html`: accounts strip + 10 stat cards + P/L chart | Daily-usable dashboard | PRD F1–F3, DESIGN §2–4 | R1–R3, D2, D6 | ⬜ |
+| M3 | **Dashboard core** — `app/dashboard.html`: accounts strip + 10 stat cards + P/L chart | Daily-usable dashboard | PRD F1–F3, DESIGN §2–4 | R1–R3, D2, D6 | ✅ 2026-07-18 |
 | M4 | **Structures table** — grouping, strategy badges, max loss, Δ/Θ, compliance chips | The flagship feature | TDD §4–6, RULEBOOK, DESIGN S3/S3b | S1–S7 | ⬜ |
 | M5 | **Closed trades + stocks sections** | Full v1 surface | PRD F5–F6 | R5, D4 | ⬜ |
 | M6 | **F9 validator** — screenshot → confirm → validate → journal | Pre-trade workflow | TDD §5.1, RULEBOOK §0.1 | V1–V4 | ⬜ |
@@ -38,4 +38,4 @@
 
 ## WIP notes
 
-(none)
+M3 notes: stat cards adjusted vs PRD F2 for data honesty — 'avg time in trade' and 'avg % return/risk' deferred to M4 (need strike-memory pairing); replaced with YTD + this-month realized. In-page R1 reconciliation footer (per-trade sum vs broker aggregate) renders live.

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pop's Portfolio</title>
+<style>
+:root { color-scheme: light;
+  --grn:#16a34a; --red:#dc2626; --acc:#5b4fd1; --bg:#f7f7fb; --card:#ffffff;
+  --ink:#1a1a2e; --mut:#6b7280; --brd:#e5e7eb; --amber:#b45309; --amberbg:#fef3c7; }
+* { box-sizing:border-box; margin:0; }
+body { font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Arial,sans-serif;
+  background:var(--bg); color:var(--ink); padding:18px; font-size:14px; max-width:1100px; margin:0 auto; }
+h1 { font-size:20px; font-weight:600; }
+.sub { color:var(--mut); font-size:12px; }
+.card { background:var(--card); border:1px solid var(--brd); border-radius:12px; padding:14px 16px; }
+.grid-acct { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:14px 0; }
+.grid-stat { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin:0 0 14px; }
+.stat .lbl { font-size:12px; color:var(--mut); }
+.stat .val { font-size:22px; font-weight:600; margin-top:3px; }
+.stat .ctx { font-size:11.5px; color:var(--mut); margin-top:3px; }
+.pos { color:var(--grn); } .neg { color:var(--red); }
+.acct .nm { font-size:12px; color:var(--mut); }
+.acct .v { font-size:17px; font-weight:600; margin-top:2px; }
+.acct .d { font-size:11px; color:var(--mut); margin-top:2px; }
+.pill { border:1px solid var(--brd); background:#fff; border-radius:999px; padding:4px 12px;
+  font-size:12px; cursor:pointer; color:var(--mut); }
+.pill.on { background:var(--acc); color:#fff; border-color:var(--acc); }
+.skel { background:linear-gradient(90deg,#ececf2 25%,#f6f6fa 50%,#ececf2 75%);
+  background-size:200% 100%; animation:sh 1.2s infinite; border-radius:8px; color:transparent !important; }
+@keyframes sh { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.banner { background:var(--amberbg); color:var(--amber); border-radius:8px; padding:8px 12px;
+  font-size:12.5px; margin:8px 0; display:none; }
+.foot { display:flex; gap:14px; flex-wrap:wrap; color:var(--mut); font-size:11.5px; margin-top:16px; }
+.tick { color:var(--grn); font-weight:600; }
+.chartbox { position:relative; height:250px; }
+.hdr { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; }
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div><h1>Pop's Portfolio</h1><div class="sub" id="asof">loading…</div></div>
+  <div class="sub" id="networth"></div>
+</div>
+<div class="banner" id="banner"></div>
+
+<div class="grid-acct" id="accts">
+  <div class="card acct skel" style="height:74px">.</div>
+  <div class="card acct skel" style="height:74px">.</div>
+  <div class="card acct skel" style="height:74px">.</div>
+  <div class="card acct skel" style="height:74px">.</div>
+  <div class="card acct skel" style="height:74px">.</div>
+</div>
+
+<div class="grid-stat" id="stats"></div>
+
+<div class="card" style="margin-bottom:14px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+    <div style="font-size:14px; font-weight:600;">Options P/L</div>
+    <div id="pills"></div>
+  </div>
+  <div class="chartbox"><canvas id="plchart" role="img" aria-label="Monthly and cumulative realized options profit and loss"></canvas></div>
+</div>
+
+<div class="foot" id="foot"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script>
+const SRV = "mcp__5b485087-b824-4983-8241-26da6e13ffa4__";
+const ACCOUNTS = [
+  {num:"878912005", name:"Stocks", note:"margin · options L3"},
+  {num:"788048817", name:"Cripto", note:"cash"},
+  {num:"429049521", name:"Roth IRA", note:"retirement"},
+  {num:"882733181", name:"Options", note:"cash"},
+  {num:"665888434", name:"Agentic", note:"cash"},
+];
+const IDX = new Set(["SPX","SPXW","XSP","NDX","RUT","VIX"]);
+const $ = id => document.getElementById(id);
+const fmt = v => (v<0?"-$":"$") + Math.abs(v).toLocaleString(undefined,{maximumFractionDigits:0});
+const fmtS = v => (v<0?"-$":"+$") + Math.abs(v).toLocaleString(undefined,{maximumFractionDigits:0});
+const cls = v => v>=0 ? "pos" : "neg";
+
+async function call(tool, args){
+  const r = await window.cowork.callMcpTool(SRV+tool, args);
+  if (r.isError) throw new Error(tool);
+  const p = r.structuredContent ?? JSON.parse(r.content[0].text);
+  return p.data ?? p;
+}
+function warn(msg){ const b=$("banner"); b.style.display="block"; b.textContent = "⚠ " + msg; }
+
+function isOption(t){
+  if (!t.symbol) return false;
+  if (IDX.has(t.symbol)) return true;
+  const q = parseFloat(t.quantity);
+  return Number.isInteger(q) && q > 0 && q <= 20;
+}
+function maxLossOf(legs, credit){
+  const ks = legs.map(l=>l.strike);
+  const pts = [0, ...ks, Math.max(...ks)*2];
+  let worst = Infinity;
+  for (const S of pts){
+    let v = credit;
+    for (const l of legs){
+      const intr = l.pc==="put" ? Math.max(l.strike-S,0) : Math.max(S-l.strike,0);
+      v += (l.side==="long"?1:-1) * intr * l.qty * l.mult;
+    }
+    worst = Math.min(worst, v);
+  }
+  return worst;
+}
+
+function statCard(lbl, val, ctx, signed){
+  const c = signed==null ? "" : cls(signed);
+  return `<div class="card stat"><div class="lbl">${lbl}</div>
+    <div class="val ${c}">${val}</div><div class="ctx">${ctx||""}</div></div>`;
+}
+function skeletonStats(){
+  $("stats").innerHTML = Array(10).fill('<div class="card stat skel" style="height:86px">.</div>').join("");
+}
+
+let chart, buckets = [];
+function renderChart(){
+  const range = localStorage.getItem("dash_range") || "YTD";
+  document.querySelectorAll("#pills .pill").forEach(p=>p.classList.toggle("on", p.dataset.r===range));
+  const now = new Date();
+  let cut = null;
+  if (range==="30d") cut = new Date(now - 30*864e5);
+  if (range==="90d") cut = new Date(now - 90*864e5);
+  if (range==="6M")  cut = new Date(now - 183*864e5);
+  if (range==="YTD") cut = new Date(now.getFullYear(),0,1);
+  const sel = buckets.filter(b => !cut || new Date(b.end) >= cut);
+  const labels = sel.map(b => b.label);
+  const vals = sel.map(b => Math.round(b.gain));
+  let run = 0; const cum = vals.map(v => run += v);
+  if (chart) chart.destroy();
+  chart = new Chart($("plchart"), {
+    data: { labels,
+      datasets: [
+        { type:"bar", data:vals, backgroundColor:vals.map(v=>v<0?"#dc2626":"#5b4fd1"), borderRadius:4, maxBarThickness:26, order:2 },
+        { type:"line", data:cum, borderColor:"#16a34a", borderWidth:2, pointRadius:0, tension:0.25, order:1 }
+      ]},
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c => (c.dataset.type==="line"?"cumulative ":"") + fmtS(c.parsed.y) } } },
+      scales:{ x:{ grid:{display:false}, ticks:{ color:"#6b7280", autoSkip:true, maxRotation:45 } },
+               y:{ grid:{ color:"#eef0f4" }, ticks:{ color:"#6b7280", callback:v=>fmtS(v) } } } }
+  });
+}
+
+(async function(){
+  $("asof").textContent = "live from Robinhood · " + new Date().toLocaleString();
+  skeletonStats();
+  $("pills").innerHTML = ["30d","90d","6M","YTD","ALL"].map(r=>`<button class="pill" data-r="${r}">${r}</button>`).join(" ");
+  document.querySelectorAll("#pills .pill").forEach(p => p.onclick = () => { localStorage.setItem("dash_range", p.dataset.r); renderChart(); });
+
+  // ---- accounts strip ----
+  const ports = await Promise.allSettled(ACCOUNTS.map(a => call("get_portfolio", {account_number:a.num})));
+  let net = 0, acctHtml = "";
+  ports.forEach((p,i) => {
+    const a = ACCOUNTS[i];
+    if (p.status !== "fulfilled"){ acctHtml += `<div class="card acct"><div class="nm">${a.name}</div><div class="v">n/a</div><div class="d">unavailable</div></div>`; warn("Some account values unavailable"); return; }
+    const d = p.value, v = parseFloat(d.total_value); net += v;
+    let extra = a.note;
+    if (a.num === "878912005"){
+      const cash = parseFloat(d.cash), bp = parseFloat(d.buying_power.buying_power);
+      extra = (cash<0 ? `margin ${fmt(cash)}` : `cash ${fmt(cash)}`) + ` · BP ${fmt(bp)}`;
+    }
+    acctHtml += `<div class="card acct"><div class="nm">${a.name} ••••${a.num.slice(-4)}</div>
+      <div class="v">${fmt(v)}</div><div class="d">${extra}</div></div>`;
+  });
+  $("accts").innerHTML = acctHtml;
+  $("networth").innerHTML = `Net worth <b style="font-size:16px">${fmt(net)}</b>`;
+
+  // ---- realized P/L (golden source) ----
+  let total = null;
+  try {
+    const rlz = await call("get_realized_pnl", {account_number:"878912005", span:"all", asset_classes:["option"]});
+    total = parseFloat(rlz.total_returns);
+    buckets = (rlz.data_points||[]).filter(b => b.realized_gain != null && b.number_of_trades > 0)
+      .map(b => ({ end: b.end_time, gain: parseFloat(b.realized_gain),
+                   label: new Date(b.start_time).toLocaleString("en",{month:"short",year:"2-digit"}) }));
+    renderChart();
+  } catch(e){ warn("Realized P/L unavailable — chart and totals degraded"); }
+
+  // ---- trade history: win rate, avg win/loss + reconciliation (R1) ----
+  let wr="—", aw="—", al="—", reconcile=null, ytd=0, mtd=0;
+  try {
+    let trades=[], cursor;
+    for (let i=0;i<6;i++){
+      const a = {account_number:"878912005", span:"all"}; if (cursor) a.cursor = cursor;
+      const d = await call("get_pnl_trade_history", a);
+      trades = trades.concat(d.trades||[]); cursor = d.next_cursor;
+      if (!cursor) break;
+    }
+    const opts = trades.filter(isOption);
+    const sum = opts.reduce((s,t)=>s+parseFloat(t.realized_gain),0);
+    if (total != null) reconcile = Math.abs(sum-total) < 0.01;
+    const wins = opts.filter(t=>parseFloat(t.realized_gain)>0);
+    const losses = opts.filter(t=>parseFloat(t.realized_gain)<0);
+    wr = opts.length ? Math.round(100*wins.length/opts.length)+"%" : "—";
+    aw = wins.length ? fmt(wins.reduce((s,t)=>s+parseFloat(t.realized_gain),0)/wins.length) : "—";
+    al = losses.length ? fmt(losses.reduce((s,t)=>s+parseFloat(t.realized_gain),0)/losses.length) : "—";
+    const y0 = new Date(new Date().getFullYear(),0,1), m0 = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    ytd = opts.filter(t=>new Date(t.timestamp)>=y0).reduce((s,t)=>s+parseFloat(t.realized_gain),0);
+    mtd = opts.filter(t=>new Date(t.timestamp)>=m0).reduce((s,t)=>s+parseFloat(t.realized_gain),0);
+  } catch(e){ warn("Trade history unavailable — win-rate cards degraded"); }
+
+  // ---- open structures: premium, risk, count ----
+  let openPrem=null, openRisk=null, nStruct=null;
+  try {
+    const pos = (await call("get_option_positions", {account_number:"878912005", nonzero:true})).positions || [];
+    if (pos.length){
+      const ids = pos.map(p=>p.option_id);
+      const inst = await call("get_option_instruments", {ids: ids.join(",")});
+      const im = {}; for (const i of (inst.instruments||[])) im[i.id]=i;
+      const groups = {};
+      for (const p of pos){
+        const key = p.chain_id + "|" + p.expiration_date;
+        (groups[key] = groups[key] || []).push({
+          side:p.type, qty:parseFloat(p.quantity), per:Math.abs(parseFloat(p.average_price))/100,
+          strike:parseFloat(im[p.option_id]?.strike_price||0), pc:im[p.option_id]?.type||"put",
+          mult:parseFloat(p.trade_value_multiplier||100) });
+      }
+      openPrem = 0; openRisk = 0; nStruct = 0;
+      for (const legs of Object.values(groups)){
+        nStruct++;
+        let credit = 0;
+        for (const l of legs) credit += (l.side==="short" ? l.per : -l.per) * l.qty * l.mult;
+        openPrem += credit;
+        const ml = maxLossOf(legs, credit);
+        if (ml < 0) openRisk += -ml;
+      }
+    } else { openPrem = 0; openRisk = 0; nStruct = 0; }
+  } catch(e){ warn("Open positions unavailable — open premium/risk degraded"); }
+
+  // ---- render stat cards ----
+  $("stats").innerHTML =
+    statCard("Total options P/L (all-time)", total!=null?fmtS(total):"n/a", "realized · broker aggregate", total) +
+    statCard("YTD options P/L", fmtS(ytd), new Date().getFullYear()+" realized", ytd) +
+    statCard("This month", fmtS(mtd), "realized options", mtd) +
+    statCard("Win rate", wr, "per closed option trade", null) +
+    statCard("Avg win", aw, "winning trades", 1) +
+    statCard("Avg loss", al, "losing trades", -1) +
+    statCard("Open premium", openPrem!=null?fmtS(openPrem):"n/a", "net credit, open structures", openPrem) +
+    statCard("Open risk", openRisk!=null?fmt(openRisk):"n/a", "max loss if all structures breach", openRisk!=null?-1:null) +
+    statCard("Open structures", nStruct!=null?String(nStruct):"n/a", "grouped positions", null) +
+    statCard("Net worth", fmt(net), "all 5 accounts", 1);
+
+  // ---- footer: reconciliation + provenance (R1-R3) ----
+  $("foot").innerHTML =
+    (reconcile==null ? "" : reconcile
+      ? `<span class="tick">✓ ties to Robinhood to the cent</span>`
+      : `<span style="color:var(--red)">✗ per-trade sum ≠ broker aggregate — investigate</span>`) +
+    `<span>source: Robinhood connector (read-only)</span>` +
+    `<span>archive: weekly Fridays → history/</span>` +
+    `<span>crypto shown as account totals only (per-coin not exposed)</span>`;
+})();
+</script>
+</body>
+</html>
