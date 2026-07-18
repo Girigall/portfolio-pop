@@ -1,20 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pop's Portfolio</title>
 <style>
-:root { color-scheme: light;
-  --grn:#16a34a; --red:#dc2626; --acc:#5b4fd1; --bg:#f7f7fb; --card:#ffffff;
-  --ink:#1a1a2e; --mut:#6b7280; --brd:#e5e7eb; --amber:#b45309; --amberbg:#fef3c7; }
+:root { color-scheme: light dark; }
+html[data-theme="light"] { color-scheme: light;
+  --grn:#16a34a; --red:#dc2626; --acc:#1d6fc4; --bg:#f7f7fb; --card:#ffffff;
+  --ink:#1a1a2e; --mut:#6b7280; --brd:#e5e7eb; --amber:#b45309; --amberbg:#fef3c7; --grid:#eef0f4; --skel1:#ececf2; --skel2:#f6f6fa; }
+html[data-theme="dark"] { color-scheme: dark;
+  --grn:#4ade80; --red:#f87171; --acc:#5aa2e8; --bg:#101216; --card:#1a1d23;
+  --ink:#e8eaed; --mut:#9aa0a6; --brd:#2a2e35; --amber:#fbbf24; --amberbg:#3a2e10; --grid:#242830; --skel1:#20242b; --skel2:#2a2e36; }
 * { box-sizing:border-box; margin:0; }
 body { font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Arial,sans-serif;
-  background:var(--bg); color:var(--ink); padding:18px; font-size:14px; max-width:1100px; margin:0 auto; }
+  background:var(--bg); color:var(--ink); padding:18px; font-size:14px; max-width:1100px; margin:0 auto;
+  transition: background .2s, color .2s; }
 h1 { font-size:20px; font-weight:600; }
 .sub { color:var(--mut); font-size:12px; }
+.scope { color:var(--mut); font-size:12px; margin:2px 0 10px; }
 .card { background:var(--card); border:1px solid var(--brd); border-radius:12px; padding:14px 16px; }
-.grid-acct { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:14px 0; }
+.grid-acct { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:12px 0; }
 .grid-stat { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin:0 0 14px; }
 .stat .lbl { font-size:12px; color:var(--mut); }
 .stat .val { font-size:22px; font-weight:600; margin-top:3px; }
@@ -23,10 +29,12 @@ h1 { font-size:20px; font-weight:600; }
 .acct .nm { font-size:12px; color:var(--mut); }
 .acct .v { font-size:17px; font-weight:600; margin-top:2px; }
 .acct .d { font-size:11px; color:var(--mut); margin-top:2px; }
-.pill { border:1px solid var(--brd); background:#fff; border-radius:999px; padding:4px 12px;
+.pill, .tab { border:1px solid var(--brd); background:var(--card); border-radius:999px; padding:4px 12px;
   font-size:12px; cursor:pointer; color:var(--mut); }
-.pill.on { background:var(--acc); color:#fff; border-color:var(--acc); }
-.skel { background:linear-gradient(90deg,#ececf2 25%,#f6f6fa 50%,#ececf2 75%);
+.pill.on, .tab.on { background:var(--acc); color:#fff; border-color:var(--acc); }
+.tab { padding:6px 16px; font-size:13px; }
+.tabs { display:flex; gap:8px; flex-wrap:wrap; margin:14px 0; }
+.skel { background:linear-gradient(90deg,var(--skel1) 25%,var(--skel2) 50%,var(--skel1) 75%);
   background-size:200% 100%; animation:sh 1.2s infinite; border-radius:8px; color:transparent !important; }
 @keyframes sh { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .banner { background:var(--amberbg); color:var(--amber); border-radius:8px; padding:8px 12px;
@@ -34,33 +42,69 @@ h1 { font-size:20px; font-weight:600; }
 .foot { display:flex; gap:14px; flex-wrap:wrap; color:var(--mut); font-size:11.5px; margin-top:16px; }
 .tick { color:var(--grn); font-weight:600; }
 .chartbox { position:relative; height:250px; }
-.hdr { display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:6px; }
+.hdr { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; }
+.soon { border:1px dashed var(--brd); border-radius:12px; padding:22px; text-align:center; color:var(--mut); font-size:13px; }
+.soon b { color:var(--ink); font-weight:600; }
+.mode { border:1px solid var(--brd); background:var(--card); color:var(--mut); border-radius:8px; padding:5px 10px; cursor:pointer; font-size:13px; }
+section[hidden] { display:none; }
 </style>
 </head>
 <body>
 <div class="hdr">
   <div><h1>Pop's Portfolio</h1><div class="sub" id="asof">loading…</div></div>
-  <div class="sub" id="networth"></div>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <div class="sub" id="networth"></div>
+    <button class="mode" id="modebtn" title="Toggle light/dark">☀️</button>
+  </div>
 </div>
 <div class="banner" id="banner"></div>
 
-<div class="grid-acct" id="accts">
-  <div class="card acct skel" style="height:74px">.</div>
-  <div class="card acct skel" style="height:74px">.</div>
-  <div class="card acct skel" style="height:74px">.</div>
-  <div class="card acct skel" style="height:74px">.</div>
-  <div class="card acct skel" style="height:74px">.</div>
+<div class="tabs" id="tabs">
+  <button class="tab on" data-t="overview">Overview</button>
+  <button class="tab" data-t="options">Options</button>
+  <button class="tab" data-t="stocks">Stocks</button>
+  <button class="tab" data-t="crypto">Crypto</button>
 </div>
 
-<div class="grid-stat" id="stats"></div>
-
-<div class="card" style="margin-bottom:14px;">
-  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-    <div style="font-size:14px; font-weight:600;">Options P/L</div>
-    <div id="pills"></div>
+<section id="t-overview">
+  <div class="scope">All 5 Robinhood accounts · live values</div>
+  <div class="grid-acct" id="accts">
+    <div class="card acct skel" style="height:74px">.</div>
+    <div class="card acct skel" style="height:74px">.</div>
+    <div class="card acct skel" style="height:74px">.</div>
+    <div class="card acct skel" style="height:74px">.</div>
+    <div class="card acct skel" style="height:74px">.</div>
   </div>
-  <div class="chartbox"><canvas id="plchart" role="img" aria-label="Monthly and cumulative realized options profit and loss"></canvas></div>
-</div>
+  <div class="grid-stat" id="ovstats"></div>
+  <div class="soon">📈 <b>Net-worth trend</b> appears here automatically once the weekly archive has ≥ 4 snapshots (started Jul 17).</div>
+</section>
+
+<section id="t-options" hidden>
+  <div class="scope">Options desk — Stocks account ••••2005 only</div>
+  <div class="grid-stat" id="stats"></div>
+  <div class="card" style="margin-bottom:14px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+      <div style="font-size:14px; font-weight:600;">Realized options P/L</div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <span id="gran"></span><span style="width:8px"></span><span id="pills"></span>
+      </div>
+    </div>
+    <div class="chartbox"><canvas id="plchart" role="img" aria-label="Realized options profit and loss over time"></canvas></div>
+  </div>
+  <div class="soon">🦋 <b>Open structures table</b> (spreads &amp; BWBs as single rows, max loss, Δ/Θ, rule-compliance chips) — next milestone <b>M4</b>.</div>
+</section>
+
+<section id="t-stocks" hidden>
+  <div class="scope">Stock positions — Stocks ••••2005 + Roth IRA ••••9521</div>
+  <div class="grid-stat" id="stkstats"></div>
+  <div class="soon">📋 <b>Full stocks section</b> (positions, P/L, % of sleeve, concentration flags, closed trades, P/L calendar) — milestone <b>M5</b>.</div>
+</section>
+
+<section id="t-crypto" hidden>
+  <div class="scope">Crypto — account totals (per-coin composition not exposed by the connector)</div>
+  <div class="grid-stat" id="crystats"></div>
+  <div class="soon">🪙 Per-coin breakdown will appear if/when the connector exposes it. Totals above are live.</div>
+</section>
 
 <div class="foot" id="foot"></div>
 
@@ -79,6 +123,28 @@ const $ = id => document.getElementById(id);
 const fmt = v => (v<0?"-$":"$") + Math.abs(v).toLocaleString(undefined,{maximumFractionDigits:0});
 const fmtS = v => (v<0?"-$":"+$") + Math.abs(v).toLocaleString(undefined,{maximumFractionDigits:0});
 const cls = v => v>=0 ? "pos" : "neg";
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ---- theme ----
+function applyTheme(t){
+  document.documentElement.setAttribute("data-theme", t);
+  $("modebtn").textContent = t==="dark" ? "☀️" : "🌙";
+  localStorage.setItem("dash_theme", t);
+  if (chart) renderChart();
+}
+$("modebtn").onclick = () => applyTheme(document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark");
+
+// ---- tabs ----
+document.querySelectorAll("#tabs .tab").forEach(b => b.onclick = () => {
+  document.querySelectorAll("#tabs .tab").forEach(x=>x.classList.toggle("on", x===b));
+  ["overview","options","stocks","crypto"].forEach(t => $("t-"+t).hidden = (t!==b.dataset.t));
+  localStorage.setItem("dash_tab", b.dataset.t);
+  if (b.dataset.t==="options" && chart) chart.resize();
+});
+function restoreTab(){
+  const t = localStorage.getItem("dash_tab") || "overview";
+  const btn = document.querySelector(`#tabs .tab[data-t="${t}"]`); if (btn) btn.click();
+}
 
 async function call(tool, args){
   const r = await window.cowork.callMcpTool(SRV+tool, args);
@@ -87,7 +153,6 @@ async function call(tool, args){
   return p.data ?? p;
 }
 function warn(msg){ const b=$("banner"); b.style.display="block"; b.textContent = "⚠ " + msg; }
-
 function isOption(t){
   if (!t.symbol) return false;
   if (IDX.has(t.symbol)) return true;
@@ -108,61 +173,77 @@ function maxLossOf(legs, credit){
   }
   return worst;
 }
-
 function statCard(lbl, val, ctx, signed){
   const c = signed==null ? "" : cls(signed);
   return `<div class="card stat"><div class="lbl">${lbl}</div>
     <div class="val ${c}">${val}</div><div class="ctx">${ctx||""}</div></div>`;
 }
-function skeletonStats(){
-  $("stats").innerHTML = Array(10).fill('<div class="card stat skel" style="height:86px">.</div>').join("");
-}
 
-let chart, buckets = [];
+// ---- chart with granularity ----
+let chart, monthBuckets = [], optTrades = [];
+function weekBuckets(){
+  const m = {};
+  for (const t of optTrades){
+    const d = new Date(t.timestamp);
+    const monday = new Date(d); monday.setDate(d.getDate() - ((d.getDay()+6)%7));
+    const k = monday.toISOString().slice(0,10);
+    m[k] = (m[k]||0) + parseFloat(t.realized_gain);
+  }
+  return Object.keys(m).sort().map(k => ({ end:k, gain:m[k],
+    label: new Date(k).toLocaleString("en",{month:"short",day:"numeric"}) }));
+}
 function renderChart(){
   const range = localStorage.getItem("dash_range") || "YTD";
+  const gran  = localStorage.getItem("dash_gran")  || "M";
   document.querySelectorAll("#pills .pill").forEach(p=>p.classList.toggle("on", p.dataset.r===range));
+  document.querySelectorAll("#gran .pill").forEach(p=>p.classList.toggle("on", p.dataset.g===gran));
   const now = new Date();
   let cut = null;
   if (range==="30d") cut = new Date(now - 30*864e5);
   if (range==="90d") cut = new Date(now - 90*864e5);
   if (range==="6M")  cut = new Date(now - 183*864e5);
   if (range==="YTD") cut = new Date(now.getFullYear(),0,1);
-  const sel = buckets.filter(b => !cut || new Date(b.end) >= cut);
-  const labels = sel.map(b => b.label);
+  const src = gran==="W" ? weekBuckets() : monthBuckets;
+  const sel = src.filter(b => !cut || new Date(b.end) >= cut);
   const vals = sel.map(b => Math.round(b.gain));
   let run = 0; const cum = vals.map(v => run += v);
   if (chart) chart.destroy();
   chart = new Chart($("plchart"), {
-    data: { labels,
+    data: { labels: sel.map(b=>b.label),
       datasets: [
-        { type:"bar", data:vals, backgroundColor:vals.map(v=>v<0?"#dc2626":"#5b4fd1"), borderRadius:4, maxBarThickness:26, order:2 },
-        { type:"line", data:cum, borderColor:"#16a34a", borderWidth:2, pointRadius:0, tension:0.25, order:1 }
+        { type:"bar", data:vals, backgroundColor:vals.map(v=>v<0?css("--red"):css("--acc")), borderRadius:4, maxBarThickness:24, order:2 },
+        { type:"line", data:cum, borderColor:css("--grn"), borderWidth:2, pointRadius:0, tension:0.25, order:1 }
       ]},
     options: { responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{display:false},
         tooltip:{ callbacks:{ label:c => (c.dataset.type==="line"?"cumulative ":"") + fmtS(c.parsed.y) } } },
-      scales:{ x:{ grid:{display:false}, ticks:{ color:"#6b7280", autoSkip:true, maxRotation:45 } },
-               y:{ grid:{ color:"#eef0f4" }, ticks:{ color:"#6b7280", callback:v=>fmtS(v) } } } }
+      scales:{ x:{ grid:{display:false}, ticks:{ color:css("--mut"), autoSkip:true, maxRotation:45 } },
+               y:{ grid:{ color:css("--grid") }, ticks:{ color:css("--mut"), callback:v=>fmtS(v) } } } }
   });
 }
 
 (async function(){
+  applyTheme(localStorage.getItem("dash_theme") || "dark");
   $("asof").textContent = "live from Robinhood · " + new Date().toLocaleString();
-  skeletonStats();
+  $("stats").innerHTML = Array(8).fill('<div class="card stat skel" style="height:86px">.</div>').join("");
   $("pills").innerHTML = ["30d","90d","6M","YTD","ALL"].map(r=>`<button class="pill" data-r="${r}">${r}</button>`).join(" ");
+  $("gran").innerHTML = ["W","M"].map(g=>`<button class="pill" data-g="${g}" title="${g==='W'?'weekly':'monthly'}">${g==='W'?'Week':'Month'}</button>`).join(" ");
   document.querySelectorAll("#pills .pill").forEach(p => p.onclick = () => { localStorage.setItem("dash_range", p.dataset.r); renderChart(); });
+  document.querySelectorAll("#gran .pill").forEach(p => p.onclick = () => { localStorage.setItem("dash_gran", p.dataset.g); renderChart(); });
+  restoreTab();
 
-  // ---- accounts strip ----
+  // ---- accounts + per-asset totals ----
   const ports = await Promise.allSettled(ACCOUNTS.map(a => call("get_portfolio", {account_number:a.num})));
-  let net = 0, acctHtml = "";
+  let net = 0, acctHtml = "", stkVal = 0, cryVal = 0, cash = 0, bp = 0, marginDebit = 0;
   ports.forEach((p,i) => {
     const a = ACCOUNTS[i];
     if (p.status !== "fulfilled"){ acctHtml += `<div class="card acct"><div class="nm">${a.name}</div><div class="v">n/a</div><div class="d">unavailable</div></div>`; warn("Some account values unavailable"); return; }
     const d = p.value, v = parseFloat(d.total_value); net += v;
+    stkVal += parseFloat(d.equity_value); cryVal += parseFloat(d.crypto_value);
     let extra = a.note;
     if (a.num === "878912005"){
-      const cash = parseFloat(d.cash), bp = parseFloat(d.buying_power.buying_power);
+      cash = parseFloat(d.cash); bp = parseFloat(d.buying_power.buying_power);
+      if (cash < 0) marginDebit = -cash;
       extra = (cash<0 ? `margin ${fmt(cash)}` : `cash ${fmt(cash)}`) + ` · BP ${fmt(bp)}`;
     }
     acctHtml += `<div class="card acct"><div class="nm">${a.name} ••••${a.num.slice(-4)}</div>
@@ -170,19 +251,31 @@ function renderChart(){
   });
   $("accts").innerHTML = acctHtml;
   $("networth").innerHTML = `Net worth <b style="font-size:16px">${fmt(net)}</b>`;
+  $("ovstats").innerHTML =
+    statCard("Net worth", fmt(net), "all accounts", 1) +
+    statCard("Stocks & ETFs", fmt(stkVal), "all accounts", null) +
+    statCard("Crypto", fmt(cryVal), "all accounts", null) +
+    statCard("Margin debit", marginDebit? "-"+fmt(marginDebit) : "$0", "Stocks account", marginDebit? -1 : 1) +
+    statCard("Buying power", fmt(bp), "Stocks account", null);
+  $("crystats").innerHTML =
+    statCard("Total crypto", fmt(cryVal), "across accounts", null) +
+    statCard("In Cripto ••••8817", ports[1].status==="fulfilled"?fmt(parseFloat(ports[1].value.crypto_value)):"n/a", "moved Jul 2026", null) +
+    statCard("In Stocks ••••2005", ports[0].status==="fulfilled"?fmt(parseFloat(ports[0].value.crypto_value)):"n/a", "staked ETH/SOL pending unstake", null);
+  $("stkstats").innerHTML =
+    statCard("Stocks value", ports[0].status==="fulfilled"?fmt(parseFloat(ports[0].value.equity_value)):"n/a", "Stocks ••••2005", null) +
+    statCard("IRA value", ports[2].status==="fulfilled"?fmt(parseFloat(ports[2].value.total_value)):"n/a", "Roth IRA ••••9521", null);
 
-  // ---- realized P/L (golden source) ----
+  // ---- realized P/L ----
   let total = null;
   try {
     const rlz = await call("get_realized_pnl", {account_number:"878912005", span:"all", asset_classes:["option"]});
     total = parseFloat(rlz.total_returns);
-    buckets = (rlz.data_points||[]).filter(b => b.realized_gain != null && b.number_of_trades > 0)
+    monthBuckets = (rlz.data_points||[]).filter(b => b.realized_gain != null && b.number_of_trades > 0)
       .map(b => ({ end: b.end_time, gain: parseFloat(b.realized_gain),
                    label: new Date(b.start_time).toLocaleString("en",{month:"short",year:"2-digit"}) }));
-    renderChart();
   } catch(e){ warn("Realized P/L unavailable — chart and totals degraded"); }
 
-  // ---- trade history: win rate, avg win/loss + reconciliation (R1) ----
+  // ---- trade history ----
   let wr="—", aw="—", al="—", reconcile=null, ytd=0, mtd=0;
   try {
     let trades=[], cursor;
@@ -192,26 +285,26 @@ function renderChart(){
       trades = trades.concat(d.trades||[]); cursor = d.next_cursor;
       if (!cursor) break;
     }
-    const opts = trades.filter(isOption);
-    const sum = opts.reduce((s,t)=>s+parseFloat(t.realized_gain),0);
+    optTrades = trades.filter(isOption);
+    const sum = optTrades.reduce((s,t)=>s+parseFloat(t.realized_gain),0);
     if (total != null) reconcile = Math.abs(sum-total) < 0.01;
-    const wins = opts.filter(t=>parseFloat(t.realized_gain)>0);
-    const losses = opts.filter(t=>parseFloat(t.realized_gain)<0);
-    wr = opts.length ? Math.round(100*wins.length/opts.length)+"%" : "—";
+    const wins = optTrades.filter(t=>parseFloat(t.realized_gain)>0);
+    const losses = optTrades.filter(t=>parseFloat(t.realized_gain)<0);
+    wr = optTrades.length ? Math.round(100*wins.length/optTrades.length)+"%" : "—";
     aw = wins.length ? fmt(wins.reduce((s,t)=>s+parseFloat(t.realized_gain),0)/wins.length) : "—";
     al = losses.length ? fmt(losses.reduce((s,t)=>s+parseFloat(t.realized_gain),0)/losses.length) : "—";
     const y0 = new Date(new Date().getFullYear(),0,1), m0 = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    ytd = opts.filter(t=>new Date(t.timestamp)>=y0).reduce((s,t)=>s+parseFloat(t.realized_gain),0);
-    mtd = opts.filter(t=>new Date(t.timestamp)>=m0).reduce((s,t)=>s+parseFloat(t.realized_gain),0);
+    ytd = optTrades.filter(t=>new Date(t.timestamp)>=y0).reduce((s,t)=>s+parseFloat(t.realized_gain),0);
+    mtd = optTrades.filter(t=>new Date(t.timestamp)>=m0).reduce((s,t)=>s+parseFloat(t.realized_gain),0);
   } catch(e){ warn("Trade history unavailable — win-rate cards degraded"); }
+  renderChart();
 
-  // ---- open structures: premium, risk, count ----
+  // ---- open structures ----
   let openPrem=null, openRisk=null, nStruct=null;
   try {
     const pos = (await call("get_option_positions", {account_number:"878912005", nonzero:true})).positions || [];
     if (pos.length){
-      const ids = pos.map(p=>p.option_id);
-      const inst = await call("get_option_instruments", {ids: ids.join(",")});
+      const inst = await call("get_option_instruments", {ids: pos.map(p=>p.option_id).join(",")});
       const im = {}; for (const i of (inst.instruments||[])) im[i.id]=i;
       const groups = {};
       for (const p of pos){
@@ -233,7 +326,6 @@ function renderChart(){
     } else { openPrem = 0; openRisk = 0; nStruct = 0; }
   } catch(e){ warn("Open positions unavailable — open premium/risk degraded"); }
 
-  // ---- render stat cards ----
   $("stats").innerHTML =
     statCard("Total options P/L (all-time)", total!=null?fmtS(total):"n/a", "realized · broker aggregate", total) +
     statCard("YTD options P/L", fmtS(ytd), new Date().getFullYear()+" realized", ytd) +
@@ -242,18 +334,15 @@ function renderChart(){
     statCard("Avg win", aw, "winning trades", 1) +
     statCard("Avg loss", al, "losing trades", -1) +
     statCard("Open premium", openPrem!=null?fmtS(openPrem):"n/a", "net credit, open structures", openPrem) +
-    statCard("Open risk", openRisk!=null?fmt(openRisk):"n/a", "max loss if all structures breach", openRisk!=null?-1:null) +
-    statCard("Open structures", nStruct!=null?String(nStruct):"n/a", "grouped positions", null) +
-    statCard("Net worth", fmt(net), "all 5 accounts", 1);
+    statCard("Open risk", openRisk!=null?fmt(openRisk):"n/a", "max loss if all breach", openRisk!=null?-1:null) +
+    statCard("Open structures", nStruct!=null?String(nStruct):"n/a", "grouped positions", null);
 
-  // ---- footer: reconciliation + provenance (R1-R3) ----
   $("foot").innerHTML =
     (reconcile==null ? "" : reconcile
       ? `<span class="tick">✓ ties to Robinhood to the cent</span>`
       : `<span style="color:var(--red)">✗ per-trade sum ≠ broker aggregate — investigate</span>`) +
     `<span>source: Robinhood connector (read-only)</span>` +
-    `<span>archive: weekly Fridays → history/</span>` +
-    `<span>crypto shown as account totals only (per-coin not exposed)</span>`;
+    `<span>archive: weekly Fridays → history/</span>`;
 })();
 </script>
 </body>
