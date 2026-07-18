@@ -1,0 +1,2 @@
+created_at,underlying,strategy,rule,strikes,expiry,qty,net_credit,dte_entry,short_delta,vix,spot,verdict,flags,thesis,status,source
+2026-07-18,SPXW,BWB,S2 · Put BWB 13%,7220/7270/7295,2026-08-07,2,355,20,0.2561,18.77,7457.69,GREEN,,"TEST (Sat, market closed, Fri-close data) — post-down-day setup, VIX 18.77",candidate,validator
