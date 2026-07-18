@@ -25,4 +25,4 @@
 
 ## The lesson all three deaths teach (institutionalized in PRD §8)
 
-Every attempt died building **infrastructure before value**: OCR servers, Swift compiles, local databases, UI scaffolds. The current architecture has no infrastructure to build — screenshots are read natively, the broker connection replaces parsing, Drive replaces the database, the artifact replaces the app shell. Only product remains.
+Every attempt died building **infrastructure before value**: OCR servers, Swift compiles, local databases, UI scaffolds. The current architecture has no infrastructure to build — screenshots are read natively, the broker connection replaces parsing, Drive replaces the database, GitHub Pages replaces the app shell. Only product remains — and the product is a URL Pop owns, fed by files Pop owns.

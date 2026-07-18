@@ -41,9 +41,9 @@ Pop tested the market with his real data (619-row Robinhood CSV, May 2025–Jul 
 |---|---|---|
 | G1 | Every displayed number ties to Robinhood ground truth | Realized totals match `get_realized_pnl` to the cent |
 | G2 | Every open multi-leg structure displays as ONE row | Jul 29 SPXW BWB renders as one position with net credit, open P/L, max loss |
-| G3 | History accumulates permanently, owned by Pop | Weekly archive files in Pop's Google Drive, cumulative, never overwritten destructively |
+| G3 | History accumulates permanently, owned by Pop | Master CSVs in Pop's Drive + GitHub mirror, append-only, Excel/Sheets-compatible, broker-independent |
 | G4 | At-a-glance clarity matching PI's density | ≥8 stat cards above the fold; one-scan comprehension |
-| G5 | Zero recurring manual work | After setup, Pop does nothing weekly |
+| G5 | Minimal manual work — Pop's accepted cost of independence | ≤10 min/week: download broker CSV → F10 Reader. Everything else: zero touch |
 
 ## 5. Non-goals (v1)
 
@@ -126,11 +126,11 @@ The archive is deliberately broker-agnostic: generic fields (symbol/strike/expir
 
 ## 9. Release plan
 
-1. Pop approves PRD + TDD + Design Spec + Test Plan
-2. Build archive job first (history starts accumulating immediately)
-3. Build dashboard clients (preview first, M8 web app as the product)
-4. Acceptance run per Test Plan (golden numbers must reconcile)
-5. Two-week bake: weekly job runs twice, counts verified to only grow
+1. Pop approves specs ✅ (2026-07-17)
+2. M1–M6 shipped ✅ (archive, backfill, preview client, structures, full surface, validator)
+3. M7 bake: two Fridays, failure drill
+4. **M8 — THE PRODUCT:** web app at a URL (GitHub Pages) + F10 CSV Reader; preview client retired
+5. M9 (optional): local collector script replaces the Claude courier entirely
 
 ## 10. v1.1 parking lot
 

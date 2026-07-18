@@ -73,6 +73,17 @@
 3. **Failure drill (HAL #5):** one simulated Friday with the Robinhood connector unreachable → archive files unchanged · `_meta.json` logs the failure · dashboard banners it on next open · zero partial writes
 4. Pop signs the bake-complete line below; only then is v1 "done"
 
+## 7. M8 product tests (the standalone web app)
+
+| ID | Test | Pass condition |
+|---|---|---|
+| P1 | URL loads anywhere | Dashboard renders on desktop browser + phone with Claude fully closed |
+| P2 | Historical completeness from files alone | With no courier for 2+ weeks, all historical sections still render fully from master CSVs |
+| P3 | As-of honesty | Every live-ish section shows its data date; nothing silently stale |
+| P4 | F10 Reader idempotency | Import the same broker CSV twice → second import appends 0 rows |
+| P5 | F10 Reader correctness | Import a fresh weekly CSV → new trades appear with strikes/strategy; totals still reconcile to broker aggregate on next courier check |
+| P6 | Preview retirement | In-app artifact removed/marked deprecated once P1–P5 pass |
+
 ---
 
 **APPROVALS**

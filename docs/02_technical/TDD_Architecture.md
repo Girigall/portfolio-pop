@@ -133,7 +133,16 @@ Post-pipeline, classification becomes exact: closes are matched to remembered op
 5. Write `_meta.json`: last run timestamp, row counts, anomalies
 6. On any fetch failure: append nothing for that section, log to meta, surface in next dashboard open. Partial data is never silently written.
 
-## 10. Dashboard load sequence
+## 10. Client load sequences
+
+**M8 product client (the real one):**
+1. `fetch()` master CSVs from the GitHub repo (history/) — no auth, no APIs
+2. Parse in-browser → render ALL historical sections (P/L, calendar, win rates, closed trades)
+3. Live-ish sections (open structures, account values) render from the latest snapshot rows with explicit "as of <date>" labels
+4. F10 Reader available at any time: file input → parse broker CSV → normalize → dedupe → append → download/commit updated masters
+5. No section ever silently stale; source labeled everywhere
+
+## 10b. Preview client load sequence (temporary, retired at M8)
 
 1. Parallel: accounts + portfolios + open option legs + realized aggregate
 2. Dependent: instruments + quotes for open legs

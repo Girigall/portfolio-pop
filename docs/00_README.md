@@ -1,6 +1,6 @@
 # 📁 Docs — Portfolio Dashboard v1
 
-**Read in this order. Nothing gets built until all four carry your approval mark.**
+**Read in this order.** Architecture updated 2026-07-18 per Pop's directive: the product is a standalone web app (M8) + Pop-owned data files; no AI dependency to use it.
 
 | # | Doc | Folder | What you're approving | Read time |
 |---|---|---|---|---|
