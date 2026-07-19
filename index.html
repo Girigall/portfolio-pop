@@ -15,28 +15,24 @@ html[data-theme="dark"] {
   --ink:#e8eaed; --mut:#9aa0a6; --brd:#2a2e35; --amber:#fbbf24; --amberbg:#3a2e10; --grid:#242830;
   --chipok:#14331f; --chipokt:#6ee7a0; --chipbad:#3a1414; --chipbadt:#f87171; --chipwarn:#3a2e10; --chipwarnt:#fbbf24; --rowline:#22262d; }
 * { box-sizing:border-box; margin:0; }
+html, body { height:100%; }
 body { font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Arial,sans-serif;
-  background:var(--bg); color:var(--ink); padding:18px; font-size:14px; max-width:1100px; margin:0 auto; }
+  background:var(--bg); color:var(--ink); font-size:14px; }
 h1 { font-size:20px; font-weight:600; }
 .sub { color:var(--mut); font-size:12px; }
 .scope { color:var(--mut); font-size:12px; margin:2px 0 10px; }
 .card { background:var(--card); border:1px solid var(--brd); border-radius:12px; padding:14px 16px; }
-.ga { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:12px 0; }
+.ga { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:0 0 12px; }
 .gs { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin:0 0 14px; }
 .stat .lbl { font-size:12px; color:var(--mut); }
 .stat .val { font-size:22px; font-weight:600; margin-top:3px; }
 .stat .ctx { font-size:11.5px; color:var(--mut); margin-top:3px; }
 .pos { color:var(--grn); } .neg { color:var(--red); }
 .acct .nm { font-size:12px; color:var(--mut); } .acct .v { font-size:17px; font-weight:600; margin-top:2px; } .acct .d { font-size:11px; color:var(--mut); margin-top:2px; }
-.pill,.tab { border:1px solid var(--brd); background:var(--card); border-radius:999px; padding:4px 12px; font-size:12px; cursor:pointer; color:var(--mut); }
-.pill.on,.tab.on { background:var(--acc); color:#fff; border-color:var(--acc); }
-.tab { padding:6px 16px; font-size:13px; }
-.tabs { display:flex; gap:8px; flex-wrap:wrap; margin:14px 0; }
-.banner { background:var(--amberbg); color:var(--amber); border-radius:8px; padding:8px 12px; font-size:12.5px; margin:8px 0; display:none; }
-.foot { display:flex; gap:14px; flex-wrap:wrap; color:var(--mut); font-size:11.5px; margin-top:16px; }
+.pill { border:1px solid var(--brd); background:var(--card); border-radius:999px; padding:4px 12px; font-size:12px; cursor:pointer; color:var(--mut); }
+.pill.on { background:var(--acc); color:#fff; border-color:var(--acc); }
+.banner { background:var(--amberbg); color:var(--amber); border-radius:8px; padding:8px 12px; font-size:12.5px; margin:0 0 14px; display:none; }
 .cb { position:relative; height:250px; }
-.hdr { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; }
-.mode { border:1px solid var(--brd); background:var(--card); color:var(--mut); border-radius:8px; padding:5px 10px; cursor:pointer; font-size:13px; }
 section[hidden] { display:none; }
 table { width:100%; border-collapse:collapse; font-size:13px; }
 th { text-align:left; color:var(--mut); font-weight:500; font-size:11.5px; padding:7px 8px; border-bottom:1px solid var(--brd); white-space:nowrap; }
@@ -50,101 +46,148 @@ tr:last-child td { border-bottom:none; }
 .drop { border:2px dashed var(--brd); border-radius:12px; padding:26px; text-align:center; color:var(--mut); cursor:pointer; }
 .drop.over { border-color:var(--acc); color:var(--acc); }
 button.act { border:1px solid var(--acc); background:var(--acc); color:#fff; border-radius:8px; padding:8px 16px; cursor:pointer; font-size:13px; }
+
+/* ---- app shell ---- */
+.app { display:flex; min-height:100vh; }
+.sidebar { width:232px; flex:0 0 232px; background:var(--card); border-right:1px solid var(--brd);
+  display:flex; flex-direction:column; gap:18px; padding:18px 14px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+.brand { display:flex; align-items:center; gap:10px; }
+.brandmark { width:34px; height:34px; flex:0 0 34px; border-radius:9px; background:var(--acc); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; }
+.brandname { font-size:14px; font-weight:600; line-height:1.3; }
+.brandsub { font-size:11px; color:var(--mut); margin-top:2px; line-height:1.4; }
+.navlist { display:flex; flex-direction:column; gap:2px; }
+.tab { display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; background:transparent;
+  color:var(--mut); border-radius:8px; padding:9px 10px; font-size:13.5px; cursor:pointer; }
+.tab .ic { width:18px; text-align:center; font-size:14px; }
+.tab.on { background:var(--acc); color:#fff; }
+.tab:hover:not(.on) { background:var(--rowline); color:var(--ink); }
+.sidefoot { margin-top:auto; display:flex; flex-direction:column; gap:9px; padding-top:14px; border-top:1px solid var(--brd); }
+.mode { align-self:flex-start; border:1px solid var(--brd); background:var(--bg); color:var(--mut); border-radius:8px; padding:5px 10px; cursor:pointer; font-size:13px; }
+.sidelinks { font-size:11px; color:var(--mut); }
+.sidelinks a { color:var(--acc); text-decoration:none; }
+.tiny { font-size:10.5px; color:var(--mut); line-height:1.5; }
+.main { flex:1; min-width:0; padding:24px 28px 40px; max-width:1120px; }
+.pagehead { margin-bottom:6px; }
+.pagehead h1 { font-size:21px; font-weight:650; margin-bottom:2px; }
+.seclbl { font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--mut); margin:22px 0 8px; }
+.seclbl:first-of-type { margin-top:14px; }
+
+@media (max-width: 860px) {
+  .app { flex-direction:column; }
+  .sidebar { position:relative; width:100%; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center; }
+  .navlist { flex-direction:row; flex-wrap:wrap; flex:1; }
+  .sidefoot { margin-top:0; flex-direction:row; flex-wrap:wrap; align-items:center; border-top:none; padding-top:0; gap:10px; }
+  .main { padding:18px; }
+}
 </style>
 </head>
 <body>
-<div class="hdr">
-  <div><h1>Pop's Portfolio</h1><div class="sub" id="asof">loading data…</div></div>
-  <div style="display:flex; align-items:center; gap:10px;">
-    <div class="sub" id="networth"></div>
-    <button class="mode" id="modebtn">☀️</button>
-  </div>
-</div>
-<div class="banner" id="banner"></div>
-
-<div class="tabs" id="tabs">
-  <button class="tab on" data-t="overview">Overview</button>
-  <button class="tab" data-t="options">Options</button>
-  <button class="tab" data-t="stocks">Stocks</button>
-  <button class="tab" data-t="crypto">Crypto</button>
-  <button class="tab" data-t="reader">📥 Reader</button>
-</div>
-
-<section id="t-overview">
-  <div class="scope">All accounts · values from latest weekly snapshot <span class="asof" id="ovasof"></span></div>
-  <div class="ga" id="accts"></div>
-  <div class="gs" id="ovstats"></div>
-  <div class="card"><div style="font-weight:600; font-size:14px; margin-bottom:8px;">Net worth trend</div>
-    <div class="cb"><canvas id="nwchart"></canvas></div>
-    <div class="sub" id="nwnote" style="margin-top:6px;"></div></div>
-</section>
-
-<section id="t-options" hidden>
-  <div class="scope">Options desk — account ••••2005 ("Options") · history from your ledger · open positions <span class="asof" id="opasof"></span></div>
-  <div class="gs" id="stats"></div>
-  <div class="card" style="margin-bottom:14px;">
-    <div style="font-weight:600; font-size:14px; margin-bottom:2px;">Open structures</div>
-    <div class="sub" style="margin-bottom:10px;">One row = one position · marks as of the snapshot date above</div>
-    <div class="tw" id="structs"></div>
-  </div>
-  <div class="card" style="margin-bottom:14px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-      <div style="font-weight:600; font-size:14px;">Realized options P/L</div>
-      <div style="display:flex; gap:6px; flex-wrap:wrap;"><span id="gran"></span><span style="width:8px"></span><span id="pills"></span></div>
-    </div>
-    <div class="cb"><canvas id="plchart"></canvas></div>
-  </div>
-  <div class="card" style="margin-bottom:14px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-      <div style="font-weight:600; font-size:14px;">P/L calendar</div>
-      <div style="display:flex; gap:6px; align-items:center;">
-        <button class="pill" id="calprev">‹</button><span id="callabel" style="font-size:13px; min-width:92px; text-align:center;"></span><button class="pill" id="calnext">›</button>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brandmark">P</div>
+      <div>
+        <div class="brandname">Pop's Portfolio</div>
+        <div class="brandsub" id="networth"></div>
       </div>
     </div>
-    <div id="calendar"></div>
-  </div>
-  <div class="card" style="margin-bottom:14px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-      <div style="font-weight:600; font-size:14px;">Closed option trades</div><span id="ctpills"></span></div>
-    <div class="tw" id="closedopts"></div>
-  </div>
-</section>
+    <nav class="navlist" id="tabs">
+      <button class="tab on" data-t="overview"><span class="ic">◧</span>Overview</button>
+      <button class="tab" data-t="options"><span class="ic">Σ</span>Options</button>
+      <button class="tab" data-t="stocks"><span class="ic">▤</span>Stocks</button>
+      <button class="tab" data-t="crypto"><span class="ic">◈</span>Crypto</button>
+      <button class="tab" data-t="reader"><span class="ic">⇩</span>Reader</button>
+    </nav>
+    <div class="sidefoot">
+      <button class="mode" id="modebtn">☀️</button>
+      <div class="sub" id="asof">loading data…</div>
+      <div class="sidelinks"><a href="history/trades_ledger.csv">ledger</a> · <a href="history/positions_snapshots.csv">snapshots</a> · <a href="history/accounts_history.csv">accounts</a></div>
+      <div class="tiny">no servers · no accounts · no AI —<br>just your files</div>
+    </div>
+  </aside>
 
-<section id="t-stocks" hidden>
-  <div class="scope">Stock positions · from latest snapshot <span class="asof" id="stasof"></span></div>
-  <div class="gs" id="stkstats"></div>
-  <div class="card" style="margin-bottom:14px;"><div style="font-weight:600; font-size:14px; margin-bottom:8px;">Positions — Options ••••2005</div><div class="tw" id="stk2005"></div></div>
-  <div class="card" style="margin-bottom:14px;"><div style="font-weight:600; font-size:14px; margin-bottom:8px;">Positions — Roth IRA ••••9521</div><div class="tw" id="stk9521"></div></div>
-  <div class="card" style="margin-bottom:14px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-      <div style="font-weight:600; font-size:14px;">Closed stock trades</div><span id="cspills"></span></div>
-    <div class="tw" id="closedstks"></div>
-  </div>
-</section>
+  <main class="main">
+    <div class="banner" id="banner"></div>
 
-<section id="t-crypto" hidden>
-  <div class="scope">Crypto — account totals from latest snapshot <span class="asof" id="cryasof"></span> (per-coin not available)</div>
-  <div class="gs" id="crystats"></div>
-</section>
+    <section id="t-overview">
+      <div class="pagehead"><h1>Overview</h1><div class="scope">All accounts · values from latest weekly snapshot <span class="asof" id="ovasof"></span></div></div>
+      <div class="seclbl">Accounts</div>
+      <div class="ga" id="accts"></div>
+      <div class="seclbl">Performance</div>
+      <div class="gs" id="ovstats"></div>
+      <div class="seclbl">Net Worth Trend</div>
+      <div class="card"><div class="cb"><canvas id="nwchart"></canvas></div>
+        <div class="sub" id="nwnote" style="margin-top:6px;"></div></div>
+    </section>
 
-<section id="t-reader" hidden>
-  <div class="scope">F10 Reader — import your weekly Robinhood activity CSV. Parses in your browser; nothing uploaded anywhere.</div>
-  <div class="card" style="margin-bottom:14px;">
-    <div class="drop" id="drop">📥 Drop your Robinhood CSV here, or click to choose<input type="file" id="file" accept=".csv" style="display:none"></div>
-    <div id="rdout" style="margin-top:12px;"></div>
-  </div>
-  <div class="card"><div style="font-weight:600; font-size:14px; margin-bottom:6px;">How it works</div>
-    <div class="sub" style="line-height:1.7">1. Robinhood app → Account → Reports and statements → generate activity report → download CSV.<br>
-    2. Drop it here. The reader pairs fills into trades (FIFO per contract), computes realized P/L, and keeps only trades AFTER your ledger's last date — no doubles, ever.<br>
-    3. Review the preview → download the updated <b>trades_ledger.csv</b> → replace the file in your Drive folder <code>05_Portfolio/history/</code>. Done: the dashboard reflects it, and your files stay the source of truth.<br>
-    <span style="color:var(--amber)">Rows the reader can't pair confidently are marked <b>needs_review</b> — never guessed.</span><br>Note: reader P/L is net of exchange fees (your true cash), so figures may differ from broker-reported gains by a few dollars per trade.</div>
-  </div>
-</section>
+    <section id="t-options" hidden>
+      <div class="pagehead"><h1>Options</h1><div class="scope">Account ••••2005 ("Options") · history from your ledger · open positions <span class="asof" id="opasof"></span></div></div>
+      <div class="seclbl">Performance</div>
+      <div class="gs" id="stats"></div>
+      <div class="seclbl">Open Structures</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="sub" style="margin-bottom:10px;">One row = one position · marks as of the snapshot date above</div>
+        <div class="tw" id="structs"></div>
+      </div>
+      <div class="seclbl">Realized P/L</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap;"><span id="gran"></span><span style="width:8px"></span><span id="pills"></span></div>
+        </div>
+        <div class="cb"><canvas id="plchart"></canvas></div>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+          <div style="font-weight:600; font-size:14px;">P/L calendar</div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button class="pill" id="calprev">‹</button><span id="callabel" style="font-size:13px; min-width:92px; text-align:center;"></span><button class="pill" id="calnext">›</button>
+          </div>
+        </div>
+        <div id="calendar"></div>
+      </div>
+      <div class="seclbl">Closed Trades</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span id="ctpills"></span></div>
+        <div class="tw" id="closedopts"></div>
+      </div>
+    </section>
 
-<div class="foot" id="foot">
-  <span>source: your master CSVs (this repo / your Drive)</span>
-  <span>no servers · no accounts · no AI — just your files</span>
-  <span><a href="history/trades_ledger.csv" style="color:var(--acc)">ledger</a> · <a href="history/positions_snapshots.csv" style="color:var(--acc)">snapshots</a> · <a href="history/accounts_history.csv" style="color:var(--acc)">accounts</a></span>
+    <section id="t-stocks" hidden>
+      <div class="pagehead"><h1>Stocks</h1><div class="scope">From latest snapshot <span class="asof" id="stasof"></span></div></div>
+      <div class="seclbl">Performance</div>
+      <div class="gs" id="stkstats"></div>
+      <div class="seclbl">Holdings</div>
+      <div class="card" style="margin-bottom:14px;"><div style="font-weight:600; font-size:14px; margin-bottom:8px;">Options ••••2005</div><div class="tw" id="stk2005"></div></div>
+      <div class="card" style="margin-bottom:14px;"><div style="font-weight:600; font-size:14px; margin-bottom:8px;">Roth IRA ••••9521</div><div class="tw" id="stk9521"></div></div>
+      <div class="seclbl">Closed Trades</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span id="cspills"></span></div>
+        <div class="tw" id="closedstks"></div>
+      </div>
+    </section>
+
+    <section id="t-crypto" hidden>
+      <div class="pagehead"><h1>Crypto</h1><div class="scope">Account totals from latest snapshot <span class="asof" id="cryasof"></span> (per-coin not available)</div></div>
+      <div class="seclbl">Balances</div>
+      <div class="gs" id="crystats"></div>
+    </section>
+
+    <section id="t-reader" hidden>
+      <div class="pagehead"><h1>Reader</h1><div class="scope">Import your weekly Robinhood activity CSV. Parses in your browser; nothing uploaded anywhere.</div></div>
+      <div class="seclbl">Import</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="drop" id="drop">📥 Drop your Robinhood CSV here, or click to choose<input type="file" id="file" accept=".csv" style="display:none"></div>
+        <div id="rdout" style="margin-top:12px;"></div>
+      </div>
+      <div class="seclbl">How It Works</div>
+      <div class="card"><div class="sub" style="line-height:1.7">1. Robinhood app → Account → Reports and statements → generate activity report → download CSV.<br>
+        2. Drop it here. The reader pairs fills into trades (FIFO per contract), computes realized P/L, and keeps only trades AFTER your ledger's last date — no doubles, ever.<br>
+        3. Review the preview → download the updated <b>trades_ledger.csv</b> → replace the file in your Drive folder <code>05_Portfolio/history/</code>. Done: the dashboard reflects it, and your files stay the source of truth.<br>
+        <span style="color:var(--amber)">Rows the reader can't pair confidently are marked <b>needs_review</b> — never guessed.</span><br>Note: reader P/L is net of exchange fees (your true cash), so figures may differ from broker-reported gains by a few dollars per trade.</div>
+      </div>
+    </section>
+  </main>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
@@ -322,7 +365,7 @@ function initPills(pid,eid,list,key){
       const cash=parseFloat(a.cash)||0;
       ah+=`<div class="card acct"><div class="nm">${NAMES[a.account]||a.account} ••••${a.account}</div><div class="v">${fmt(v)}</div><div class="d">${a.account==="2005"?(cash<0?`margin ${fmt(cash)} · BP ${fmt(parseFloat(a.buying_power)||0)}`:"cash "+fmt(cash)):" "}</div></div>`;}
     $("accts").innerHTML=ah||'<div class="sub">No account snapshots yet.</div>';
-    $("networth").innerHTML=`Net worth <b style="font-size:16px">${fmt(net)}</b> <span class="sub">as of ${lastA||"—"}</span>`;
+    $("networth").innerHTML=`Net worth <b>${fmt(net)}</b><br>as of ${lastA||"—"}`;
     const c2005=curA.find(a=>a.account==="2005")||{}, c8817=curA.find(a=>a.account==="8817")||{}, c9521=curA.find(a=>a.account==="9521")||{};
     const cryTot=curA.reduce((s,a)=>s+(parseFloat(a.crypto_value)||0),0);
     $("ovstats").innerHTML=
