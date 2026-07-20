@@ -60,6 +60,16 @@ Tortuga audit fully addressed — every item from the steal-list is shipped or e
 - Tortuga's collateral/risk math (raw strike notional, e.g. $1.26M "risk" on a 2-lot short put) — audit flags this as dangerously wrong. Pop's dashboard already does payoff-based max loss (TDD §6); nothing to change, just don't regress it.
 - Leg-first Journal — Tortuga's own audit calls this its biggest flaw. Any future Journal build should be strategy-first from day one.
 
+## Shipped (M13) — full nav structure, not just visual treatment
+- [x] Full 7-item top-level nav copied from Tortuga: Dashboard, Trades, Calendar, Portfolio, Option Strategy, Reader, Settings (Leaderboard and MTO Opciones excluded per Pop's explicit instruction)
+- [x] Trades tab (Overview/Journal/Strategies) — historical activity split out from current holdings
+- [x] Calendar promoted to standalone top-level (was nested under Options)
+- [x] Portfolio tab (Overview/Options/Stocks/ETFs/Dividends/Crypto) — consolidates the old Options/Stocks/Crypto tabs under one current-holdings umbrella
+- [x] Option Strategy tab — Calculator built for real (reuses `economics()`, no save/no file write); Lab and Radar are honest placeholders
+- [x] Settings tab — app info + data file links
+- [x] "Trades by Tortuga" nav item evaluated and explicitly dropped — curated company/community content, no equivalent in a single-user product, audit's own "skip for MVP" recommendation
+- [x] M12's Options sub-tab sidebar-nesting reverted to in-page pills (self-corrected — Tortuga only nests 2 levels deep in its sidebar)
+
 ## Design principles confirmed by Pop
 - Dark mode matters (eye strain) — default dark, toggle to light
 - No purple; palette = green profit / red loss / steel blue accent / neutral grays

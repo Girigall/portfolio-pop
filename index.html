@@ -34,6 +34,7 @@ h1 { font-size:20px; font-weight:600; }
 .banner { background:var(--amberbg); color:var(--amber); border-radius:8px; padding:8px 12px; font-size:12.5px; margin:0 0 14px; display:none; }
 .cb { position:relative; height:250px; }
 section[hidden] { display:none; }
+div[hidden] { display:none; }
 table { width:100%; border-collapse:collapse; font-size:13px; }
 th { text-align:left; color:var(--mut); font-weight:500; font-size:11.5px; padding:7px 8px; border-bottom:1px solid var(--brd); white-space:nowrap; }
 th.dragcol { cursor:grab; }
@@ -56,10 +57,11 @@ input[type=text], input[type=date], input[type=number], select, textarea {
   width:100%; background:var(--bg); color:var(--ink); border:1px solid var(--brd); border-radius:7px; padding:6px 8px; font-size:13px; font-family:inherit; }
 textarea { resize:vertical; }
 .legrow { display:grid; grid-template-columns:1fr 1fr 1fr 0.8fr 1fr 1fr; gap:8px; margin-bottom:8px; align-items:end; }
-.legrow .flbl:first-child { }
 @media (max-width:760px) { .legrow { grid-template-columns:1fr 1fr; } }
+.placeholder { text-align:center; padding:40px 20px; color:var(--mut); }
+.placeholder .big { font-size:28px; margin-bottom:8px; }
 
-/* ---- page widgets (all tabs) ---- */
+/* ---- page widgets ---- */
 [id^="wGrid-"] { display:flex; flex-wrap:wrap; }
 .widget { flex:1 1 100%; min-width:280px; }
 .widget.w-33 { flex:1 1 33%; }
@@ -71,10 +73,11 @@ textarea { resize:vertical; }
 .wctl { font-size:12px; color:var(--mut); cursor:grab; user-select:none; }
 .wctl button { border:1px solid var(--brd); background:var(--card); color:var(--mut); border-radius:6px; padding:2px 8px; cursor:pointer; font-size:12px; margin-left:4px; }
 .wctl button:hover { color:var(--ink); }
+.subhead { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
 
 /* ---- app shell ---- */
 .app { display:flex; min-height:100vh; }
-.sidebar { width:232px; flex:0 0 232px; background:var(--card); border-right:1px solid var(--brd);
+.sidebar { width:236px; flex:0 0 236px; background:var(--card); border-right:1px solid var(--brd);
   display:flex; flex-direction:column; gap:18px; padding:18px 14px; position:sticky; top:0; height:100vh; overflow-y:auto; }
 .brand { display:flex; align-items:center; gap:10px; }
 .brandmark { width:34px; height:34px; flex:0 0 34px; border-radius:9px; background:var(--acc); color:#fff;
@@ -126,19 +129,37 @@ textarea { resize:vertical; }
       </div>
     </div>
     <nav class="navlist" id="tabs">
-      <button class="tab on" data-t="overview"><span class="ic">◧</span>Overview</button>
+      <button class="tab on" data-t="overview"><span class="ic">◧</span>Dashboard</button>
       <div class="navgroup">
-        <button class="tab" data-t="options" id="navOptions"><span class="ic">Σ</span>Options<span class="chev">›</span></button>
-        <div class="navsub" id="navOptionsSub" hidden>
-          <button class="subitem on" data-v="all">All</button>
-          <button class="subitem" data-v="exp">Expirations</button>
-          <button class="subitem" data-v="und">Underlyings</button>
-          <button class="subitem" data-v="ana">Analysis</button>
+        <button class="tab" data-t="trades" data-grp="trades"><span class="ic">↗</span>Trades<span class="chev">›</span></button>
+        <div class="navsub" id="navsub-trades" hidden>
+          <button class="subitem on" data-grp="trades" data-v="overview">Overview</button>
+          <button class="subitem" data-grp="trades" data-v="journal">Journal</button>
+          <button class="subitem" data-grp="trades" data-v="strategies">Strategies</button>
         </div>
       </div>
-      <button class="tab" data-t="stocks"><span class="ic">▤</span>Stocks</button>
-      <button class="tab" data-t="crypto"><span class="ic">◈</span>Crypto</button>
+      <button class="tab" data-t="calendar"><span class="ic">▦</span>Calendar</button>
+      <div class="navgroup">
+        <button class="tab" data-t="portfolio" data-grp="portfolio"><span class="ic">◔</span>Portfolio<span class="chev">›</span></button>
+        <div class="navsub" id="navsub-portfolio" hidden>
+          <button class="subitem on" data-grp="portfolio" data-v="overview">Overview</button>
+          <button class="subitem" data-grp="portfolio" data-v="options">Options</button>
+          <button class="subitem" data-grp="portfolio" data-v="stocks">Stocks</button>
+          <button class="subitem" data-grp="portfolio" data-v="etfs">ETFs</button>
+          <button class="subitem" data-grp="portfolio" data-v="dividends">Dividends</button>
+          <button class="subitem" data-grp="portfolio" data-v="crypto">Crypto</button>
+        </div>
+      </div>
+      <div class="navgroup">
+        <button class="tab" data-t="optstrat" data-grp="optstrat"><span class="ic">⌖</span>Option Strategy<span class="chev">›</span></button>
+        <div class="navsub" id="navsub-optstrat" hidden>
+          <button class="subitem on" data-grp="optstrat" data-v="lab">Lab</button>
+          <button class="subitem" data-grp="optstrat" data-v="calculator">Calculator</button>
+          <button class="subitem" data-grp="optstrat" data-v="radar">Radar</button>
+        </div>
+      </div>
       <button class="tab" data-t="reader"><span class="ic">⇩</span>Reader</button>
+      <button class="tab" data-t="settings"><span class="ic">⚙</span>Settings</button>
     </nav>
     <div class="sidefoot">
       <button class="mode" id="modebtn">☀️</button>
@@ -154,7 +175,7 @@ textarea { resize:vertical; }
     <section id="t-overview">
       <div class="pagehead">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
-          <div><h1>Overview</h1><div class="scope">All accounts · values from latest weekly snapshot <span class="asof" id="ovasof"></span></div></div>
+          <div><h1>Dashboard</h1><div class="scope">All accounts · values from latest weekly snapshot <span class="asof" id="ovasof"></span></div></div>
           <div style="display:flex; gap:6px;">
             <button class="pill" id="wAdd-overview" hidden>+ Add card</button>
             <button class="pill" id="wReset-overview" hidden>↺ Reset</button>
@@ -188,78 +209,73 @@ textarea { resize:vertical; }
       </div>
     </section>
 
-    <section id="t-options" hidden>
-      <div class="pagehead">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
-          <div><h1>Options</h1><div class="scope">Account ••••2005 ("Options") · history from your ledger · open structures <span class="asof" id="opasof"></span></div></div>
-          <div style="display:flex; gap:6px;">
-            <button class="pill" id="wAdd-options" hidden>+ Add card</button>
-            <button class="pill" id="wReset-options" hidden>↺ Reset</button>
-            <button class="pill" id="wOrganize-options">⊞ Organize panels</button>
+    <section id="t-trades" hidden>
+      <div class="pagehead"><h1>Trades</h1><div class="scope">Your historical activity — closed trades, journal, strategy performance</div></div>
+
+      <div id="trades-overview">
+        <div class="subhead"><span></span><div style="display:flex; gap:6px;">
+          <button class="pill" id="wAdd-trades-overview" hidden>+ Add card</button>
+          <button class="pill" id="wReset-trades-overview" hidden>↺ Reset</button>
+          <button class="pill" id="wOrganize-trades-overview">⊞ Organize panels</button>
+        </div></div>
+        <div id="wGrid-trades-overview">
+          <div class="widget" data-id="pl">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Realized P/L</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="card" style="margin-bottom:14px;">
+              <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                <div style="display:flex; gap:6px; flex-wrap:wrap;"><span id="gran"></span><span style="width:8px"></span><span id="pills"></span></div>
+              </div>
+              <div class="cb"><canvas id="plchart"></canvas></div>
+            </div>
+          </div>
+          <div class="widget" data-id="closedopts">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Closed Trades — Options</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="card" style="margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span class="sub">⠿ drag column headers to reorder</span><span id="ctpills"></span></div>
+              <div class="tw" id="closedopts"></div>
+            </div>
+          </div>
+          <div class="widget" data-id="closedstks">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Closed Trades — Stocks</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="card" style="margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span class="sub">⠿ drag column headers to reorder</span><span id="cspills"></span></div>
+              <div class="tw" id="closedstks"></div>
+            </div>
           </div>
         </div>
       </div>
-      <div id="wGrid-options">
-        <div class="widget" data-id="perf">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Performance</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
-          </div>
-          <div class="gs" id="stats"></div>
-        </div>
-        <div class="widget" data-id="structs">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Open Structures</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
-          </div>
-          <div class="card" style="margin-bottom:14px;">
-            <div class="sub" style="margin-bottom:10px;">One row = one structure · marks as of the snapshot date above · switch view from the sidebar</div>
-            <div class="tw" id="structs"></div>
-            <div class="tw" id="structsExp" hidden></div>
-            <div class="tw" id="structsUnd" hidden></div>
-            <div id="structsAna" hidden></div>
-          </div>
-        </div>
-        <div class="widget" data-id="pl">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Realized P/L</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
-          </div>
-          <div class="card" style="margin-bottom:14px;">
-            <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span id="gran"></span><span style="width:8px"></span><span id="pills"></span></div>
-            </div>
-            <div class="cb"><canvas id="plchart"></canvas></div>
-          </div>
-        </div>
-        <div class="widget" data-id="cal">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Calendar</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
-          </div>
-          <div class="card" style="margin-bottom:14px;">
-            <div id="calribbon" style="margin-bottom:12px;"></div>
-            <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-              <span id="calmodepills"></span>
-              <span id="calmetricpills"></span>
-              <button class="pill" id="caltoday">Today</button>
-              <button class="pill" id="calprev">‹</button><span id="callabel" style="font-size:13px; min-width:92px; text-align:center;"></span><button class="pill" id="calnext">›</button>
-            </div>
-            <div id="calendar"></div>
-          </div>
-        </div>
-        <div class="widget" data-id="closed">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Closed Trades</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
-          </div>
-          <div class="card" style="margin-bottom:14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span class="sub">⠿ drag column headers to reorder</span><span id="ctpills"></span></div>
-            <div class="tw" id="closedopts"></div>
-          </div>
+
+      <div id="trades-journal" hidden>
+        <div class="seclbl" style="margin-top:14px;">Journal</div>
+        <div class="card"><div class="sub" style="margin-bottom:10px;">Every open structure, plus anything you've journaled before. Click one to open its journal panel.</div>
+          <div class="tw" id="tradesJournalList"></div>
         </div>
       </div>
-      <div class="card" id="journalPanel" style="margin-bottom:14px;" hidden>
+
+      <div id="trades-strategies" hidden>
+        <div class="seclbl" style="margin-top:14px;">Strategies — journal search</div>
+        <div class="card">
+          <div class="sub" style="margin-bottom:10px;">Filter your journaled structures by rating, mindset, symbol, or tags.</div>
+          <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-bottom:10px;">
+            <div><label class="flbl">Min rating</label><select id="tsRating"><option value="0">Any</option><option value="1">★+</option><option value="2">★★+</option><option value="3">★★★+</option><option value="4">★★★★+</option><option value="5">★★★★★</option></select></div>
+            <div><label class="flbl">Mindset</label><select id="tsMindset"><option value="">Any</option><option>Happy</option><option>Neutral</option><option>Anxious</option><option>Excited</option><option>Fearful</option><option>Bored</option></select></div>
+            <div><label class="flbl">Symbol</label><input type="text" id="tsSymbol" placeholder="SPXW" style="text-transform:uppercase;"></div>
+            <div><label class="flbl">Tags contain</label><input type="text" id="tsTags" placeholder="earnings-play"></div>
+          </div>
+          <div class="tw" id="tradesStrategiesList"></div>
+        </div>
+      </div>
+
+      <div class="card" id="journalPanel" style="margin-bottom:14px; margin-top:14px;" hidden>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <div style="font-weight:600; font-size:14px;">Journal — <span id="jTitle"></span></div>
           <button class="pill" id="jClose">✕ Close</button>
@@ -276,71 +292,151 @@ textarea { resize:vertical; }
       </div>
     </section>
 
-    <section id="t-stocks" hidden>
+    <section id="t-calendar" hidden>
       <div class="pagehead">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
-          <div><h1>Stocks</h1><div class="scope">From latest snapshot <span class="asof" id="stasof"></span></div></div>
+          <div><h1>Calendar</h1><div class="scope">Realized options P/L by day, week, month, or year</div></div>
           <div style="display:flex; gap:6px;">
-            <button class="pill" id="wAdd-stocks" hidden>+ Add card</button>
-            <button class="pill" id="wReset-stocks" hidden>↺ Reset</button>
-            <button class="pill" id="wOrganize-stocks">⊞ Organize panels</button>
+            <button class="pill" id="wAdd-calendar" hidden>+ Add card</button>
+            <button class="pill" id="wReset-calendar" hidden>↺ Reset</button>
+            <button class="pill" id="wOrganize-calendar">⊞ Organize panels</button>
           </div>
         </div>
       </div>
-      <div id="wGrid-stocks">
-        <div class="widget" data-id="perf">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Performance</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
-          </div>
-          <div class="gs" id="stkstats"></div>
-        </div>
-        <div class="widget" data-id="hold2005">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Holdings — Options ••••2005</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
-          </div>
-          <div class="card" style="margin-bottom:14px;"><div class="tw" id="stk2005"></div></div>
-        </div>
-        <div class="widget" data-id="hold9521">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Holdings — Roth IRA ••••9521</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
-          </div>
-          <div class="card" style="margin-bottom:14px;"><div class="tw" id="stk9521"></div></div>
-        </div>
-        <div class="widget" data-id="closed">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Closed Trades</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
-          </div>
+      <div id="wGrid-calendar">
+        <div class="widget" data-id="cal">
           <div class="card" style="margin-bottom:14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span class="sub">⠿ drag column headers to reorder</span><span id="cspills"></span></div>
-            <div class="tw" id="closedstks"></div>
+            <div id="calribbon" style="margin-bottom:12px;"></div>
+            <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+              <span id="calmodepills"></span>
+              <span id="calmetricpills"></span>
+              <button class="pill" id="caltoday">Today</button>
+              <button class="pill" id="calprev">‹</button><span id="callabel" style="font-size:13px; min-width:92px; text-align:center;"></span><button class="pill" id="calnext">›</button>
+            </div>
+            <div id="calendar"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <section id="t-crypto" hidden>
-      <div class="pagehead">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
-          <div><h1>Crypto</h1><div class="scope">Account totals from latest snapshot <span class="asof" id="cryasof"></span> (per-coin not available)</div></div>
-          <div style="display:flex; gap:6px;">
-            <button class="pill" id="wAdd-crypto" hidden>+ Add card</button>
-            <button class="pill" id="wReset-crypto" hidden>↺ Reset</button>
-            <button class="pill" id="wOrganize-crypto">⊞ Organize panels</button>
+    <section id="t-portfolio" hidden>
+      <div class="pagehead"><h1>Portfolio</h1><div class="scope">Current holdings — what you have, not what you did</div></div>
+
+      <div id="portfolio-overview">
+        <div class="seclbl" style="margin-top:14px;">Allocation</div>
+        <div class="gs" id="allocStats"></div>
+        <div class="sub" id="allocNote" style="margin-top:-6px; margin-bottom:14px;"></div>
+      </div>
+
+      <div id="portfolio-options" hidden>
+        <div class="subhead"><span></span><div style="display:flex; gap:6px;">
+          <button class="pill" id="wAdd-portfolio-options" hidden>+ Add card</button>
+          <button class="pill" id="wReset-portfolio-options" hidden>↺ Reset</button>
+          <button class="pill" id="wOrganize-portfolio-options">⊞ Organize panels</button>
+        </div></div>
+        <div id="wGrid-portfolio-options">
+          <div class="widget" data-id="perf">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Performance</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="gs" id="stats"></div>
+          </div>
+          <div class="widget" data-id="structs">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Open Structures</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="card" style="margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                <div class="sub">One row = one structure · marks as of the snapshot date above</div>
+                <span id="structviewpills"></span>
+              </div>
+              <div class="tw" id="structs"></div>
+              <div class="tw" id="structsExp" hidden></div>
+              <div class="tw" id="structsUnd" hidden></div>
+              <div id="structsAna" hidden></div>
+            </div>
           </div>
         </div>
       </div>
-      <div id="wGrid-crypto">
-        <div class="widget" data-id="balances">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="seclbl" style="margin:22px 0 8px;">Balances</div>
-            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+
+      <div id="portfolio-stocks" hidden>
+        <div class="subhead"><span></span><div style="display:flex; gap:6px;">
+          <button class="pill" id="wAdd-portfolio-stocks" hidden>+ Add card</button>
+          <button class="pill" id="wReset-portfolio-stocks" hidden>↺ Reset</button>
+          <button class="pill" id="wOrganize-portfolio-stocks">⊞ Organize panels</button>
+        </div></div>
+        <div id="wGrid-portfolio-stocks">
+          <div class="widget" data-id="perf">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Performance</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="gs" id="stkstats"></div>
           </div>
-          <div class="gs" id="crystats"></div>
+          <div class="widget" data-id="hold2005">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Holdings — Options ••••2005</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="card" style="margin-bottom:14px;"><div class="tw" id="stk2005"></div></div>
+          </div>
+          <div class="widget" data-id="hold9521">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Holdings — Roth IRA ••••9521</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="card" style="margin-bottom:14px;"><div class="tw" id="stk9521"></div></div>
+          </div>
         </div>
+      </div>
+
+      <div id="portfolio-etfs" hidden>
+        <div class="card placeholder"><div class="big">📊</div><b>ETFs aren't classified separately yet</b><div class="sub" style="margin-top:6px;">Every holding is tracked under Stocks today — this app doesn't yet distinguish ETFs from individual equities. Nothing to fake here; check Portfolio → Stocks for everything.</div></div>
+      </div>
+
+      <div id="portfolio-dividends" hidden>
+        <div class="card placeholder"><div class="big">💵</div><b>Dividends aren't tracked yet</b><div class="sub" style="margin-top:6px;">No dividend data is parsed from Robinhood today. A future module could add this — nothing shown here is guessed.</div></div>
+      </div>
+
+      <div id="portfolio-crypto" hidden>
+        <div class="subhead"><span></span><div style="display:flex; gap:6px;">
+          <button class="pill" id="wAdd-portfolio-crypto" hidden>+ Add card</button>
+          <button class="pill" id="wReset-portfolio-crypto" hidden>↺ Reset</button>
+          <button class="pill" id="wOrganize-portfolio-crypto">⊞ Organize panels</button>
+        </div></div>
+        <div class="sub" style="margin-bottom:10px;">Account totals from latest snapshot (per-coin not available)</div>
+        <div id="wGrid-portfolio-crypto">
+          <div class="widget" data-id="balances">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Balances</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="gs" id="crystats"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="t-optstrat" hidden>
+      <div class="pagehead"><h1>Option Strategy</h1><div class="scope">Tools for building and checking structures before you trade them</div></div>
+
+      <div id="optstrat-lab">
+        <div class="card placeholder"><div class="big">🧪</div><b>Lab isn't built yet</b><div class="sub" style="margin-top:6px;">A full strategy builder (drag strikes, see live payoff diagrams) is a bigger build than this pass covers. Calculator (next tab) already gives you detected-strategy + max-loss + breakeven math for any legs you type in.</div></div>
+      </div>
+      <div id="optstrat-calculator" hidden>
+        <div class="card">
+          <div class="sub" style="margin-bottom:10px;">What-if tool — enter any legs and see the math instantly. Nothing saves, nothing is written anywhere.</div>
+          <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-bottom:4px;">
+            <div><label class="flbl">Legs</label><div id="calcLegBtns"></div></div>
+          </div>
+          <div id="calcLegs" style="margin-top:10px;"></div>
+          <div id="calcPreview" style="margin-top:12px;"></div>
+        </div>
+      </div>
+      <div id="optstrat-radar" hidden>
+        <div class="card placeholder"><div class="big">📡</div><b>Radar isn't built yet</b><div class="sub" style="margin-top:6px;">A scanner over your positions/watchlist for setups matching your rulebook. Not built in this pass.</div></div>
       </div>
     </section>
 
@@ -437,6 +533,28 @@ textarea { resize:vertical; }
       </div>
       </div>
     </section>
+
+    <section id="t-settings" hidden>
+      <div class="pagehead"><h1>Settings</h1><div class="scope">No accounts to configure — this app has none. Here's what there is.</div></div>
+      <div class="seclbl">About</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="sub" style="line-height:1.7">Pop's Portfolio is a static, single-file web app. It reads your archive CSVs straight out of your Drive/GitHub folder via <code>fetch()</code> — no backend, no database, no login, no AI required to use it. Everything you see is computed in your browser from the files linked below.</div>
+      </div>
+      <div class="seclbl">Your Data Files</div>
+      <div class="card" style="margin-bottom:14px;">
+        <table>
+          <tr><th>File</th><th>What it holds</th></tr>
+          <tr><td><a href="history/trades_ledger.csv">trades_ledger.csv</a></td><td>Every closed trade — the permanent record, append-only</td></tr>
+          <tr><td><a href="history/positions_snapshots.csv">positions_snapshots.csv</a></td><td>Weekly snapshot of open option legs and stock holdings</td></tr>
+          <tr><td><a href="history/accounts_history.csv">accounts_history.csv</a></td><td>Weekly account balances (net worth, cash, buying power)</td></tr>
+          <tr><td><a href="history/manual_positions.csv">manual_positions.csv</a></td><td>Positions you entered by hand, before the weekly snapshot catches up</td></tr>
+          <tr><td><a href="history/structure_journal.csv">structure_journal.csv</a></td><td>Your notes, thesis, tags, rating, and mindset per structure</td></tr>
+        </table>
+      </div>
+      <div class="seclbl">Appearance</div>
+      <div class="card"><div class="sub">Dark/light mode is the toggle in the sidebar footer (☀️/🌙). That's the only theme control — no separate theme picker.</div></div>
+    </section>
+
   </main>
 </div>
 
@@ -469,18 +587,46 @@ async function loadCSVSafe(path){ try{ return await loadCSV(path); }catch(e){ re
 function warn(m){ const b=$("banner"); b.style.display="block"; b.textContent="⚠ "+m; }
 function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); $("modebtn").textContent=t==="dark"?"☀️":"🌙"; localStorage.setItem("p_theme",t); if(chart)renderChart(); }
 $("modebtn").onclick=()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");
-document.querySelectorAll("#tabs .tab").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("#tabs .tab").forEach(x=>x.classList.toggle("on",x===b));
-  ["overview","options","stocks","crypto","reader"].forEach(t=>$("t-"+t).hidden=(t!==b.dataset.t));
-  localStorage.setItem("p_tab",b.dataset.t);
-  $("navOptions").classList.toggle("expanded", b.dataset.t==="options");
-  $("navOptionsSub").hidden = b.dataset.t!=="options";
-  if(b.dataset.t==="options"&&chart)chart.resize();
-});
-document.querySelectorAll("#navOptionsSub .subitem").forEach(b=>b.onclick=()=>{
-  $("navOptions").click();
-  structView=b.dataset.v; localStorage.setItem("p_structview",structView); renderStructViews();
-});
+
+// ================= NAVIGATION (top-level tabs + sidebar-nested groups) =================
+const TOP_TABS = ["overview","trades","calendar","portfolio","optstrat","reader","settings"];
+const NAV_GROUPS = {
+  trades: ["overview","journal","strategies"],
+  portfolio: ["overview","options","stocks","etfs","dividends","crypto"],
+  optstrat: ["lab","calculator","radar"],
+};
+let subView = {
+  trades: localStorage.getItem("p_trades_v")||"overview",
+  portfolio: localStorage.getItem("p_portfolio_v")||"overview",
+  optstrat: localStorage.getItem("p_optstrat_v")||"lab",
+};
+function applySubViewVisibility(grp){
+  NAV_GROUPS[grp].forEach(v=>{ const el=$(grp+"-"+v); if(el) el.hidden = v!==subView[grp]; });
+  document.querySelectorAll(`.subitem[data-grp="${grp}"]`).forEach(p=>p.classList.toggle("on", p.dataset.v===subView[grp]));
+}
+function showTopTab(t){
+  document.querySelectorAll("#tabs .tab[data-t]").forEach(x=>x.classList.toggle("on", x.dataset.t===t));
+  TOP_TABS.forEach(tt=>$("t-"+tt).hidden = tt!==t);
+  localStorage.setItem("p_tab", t);
+  Object.keys(NAV_GROUPS).forEach(g=>{
+    const isActive = g===t;
+    const navBtn = document.querySelector(`.tab[data-grp="${g}"]`);
+    const sub = $("navsub-"+g);
+    if(navBtn) navBtn.classList.toggle("expanded", isActive);
+    if(sub) sub.hidden = !isActive;
+    if(isActive) applySubViewVisibility(g);
+  });
+  if(t==="trades" && subView.trades==="overview" && chart) chart.resize();
+  if(t==="portfolio" && subView.portfolio==="options" && chart) chart.resize();
+}
+document.querySelectorAll("#tabs .tab[data-t]").forEach(b=>b.onclick=()=>showTopTab(b.dataset.t));
+function showSubView(grp, v){
+  subView[grp]=v; localStorage.setItem("p_"+grp+"_v", v);
+  showTopTab(grp);
+}
+document.querySelectorAll(".subitem[data-grp]").forEach(b=>b.onclick=()=>showSubView(b.dataset.grp, b.dataset.v));
+Object.keys(NAV_GROUPS).forEach(applySubViewVisibility);
+
 function detect(legs){
   const puts=legs.filter(l=>l.pc==="put");
   const strikes=[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b);
@@ -582,7 +728,7 @@ function renderAnalysis(){
   $("structsAna").innerHTML=h;
 }
 function renderStructViews(){
-  document.querySelectorAll("#navOptionsSub .subitem").forEach(p=>p.classList.toggle("on",p.dataset.v===structView));
+  document.querySelectorAll("#structviewpills .pill").forEach(p=>p.classList.toggle("on",p.dataset.v===structView));
   const map={all:"structs",exp:"structsExp",und:"structsUnd",ana:"structsAna"};
   Object.values(map).forEach(id=>$(id).hidden=true);
   $(map[structView]).hidden=false;
@@ -590,6 +736,9 @@ function renderStructViews(){
   if(structView==="und")renderUnderlyings();
   if(structView==="ana")renderAnalysis();
 }
+$("structviewpills").innerHTML=[["all","All"],["exp","Expirations"],["und","Underlyings"],["ana","Analysis"]].map(([k,l])=>`<button class="pill" data-v="${k}">${l}</button>`).join(" ");
+document.querySelectorAll("#structviewpills .pill").forEach(p=>p.onclick=()=>{structView=p.dataset.v; localStorage.setItem("p_structview",structView); renderStructViews();});
+
 function openJournal(key){
   const st=structs.find(s=>s.key===key);
   const j=window._journalMap[key]||{};
@@ -621,14 +770,110 @@ $("jSave").onclick=()=>{
   const url=URL.createObjectURL(blob);
   $("jSaveOut").innerHTML=`<a class="act" style="text-decoration:none" href="${url}" download="structure_journal.csv">⬇ Download updated structure_journal.csv</a>
     <div class="sub" style="margin-top:8px">Replace <code>05_Portfolio/history/structure_journal.csv</code> in your Drive folder with this file.</div>`;
+  renderTradesJournal(); renderTradesStrategies();
 };
 
-// ================= PAGE WIDGETS (all tabs) =================
+// ================= TRADES: JOURNAL + STRATEGIES ================
+function journalKeys(){
+  const openKeys = structs.map(s=>s.key);
+  const journaledKeys = Object.keys(window._journalMap||{});
+  return [...new Set([...openKeys, ...journaledKeys])];
+}
+function renderTradesJournal(){
+  const keys = journalKeys();
+  if(!keys.length){ $("tradesJournalList").innerHTML='<div class="sub" style="padding:10px">No open structures and nothing journaled yet.</div>'; return; }
+  let h="<table><tr><th>Structure</th><th>Status</th><th>Rating</th><th>Mindset</th><th></th></tr>";
+  for(const key of keys){
+    const st=structs.find(s=>s.key===key);
+    const j=window._journalMap[key];
+    const label = st ? `${st.sym} ${st.strikes.join("/")} · ${st.expiry.slice(5)}` : key;
+    h+=`<tr><td>${label}</td><td>${st?"open":"closed/inactive"}</td><td>${j&&j.rating?"★".repeat(+j.rating):"—"}</td><td>${j&&j.mindset||"—"}</td>
+      <td><button class="pill jopen" data-key="${key}">${j?"Edit journal":"Add journal"}</button></td></tr>`;
+  }
+  h+="</table>";
+  $("tradesJournalList").innerHTML=h;
+  document.querySelectorAll("#tradesJournalList .jopen").forEach(b=>b.onclick=()=>{ showSubView("trades","journal"); openJournal(b.dataset.key); });
+}
+function renderTradesStrategies(){
+  const minRating=+($("tsRating")?.value||0), mindset=$("tsMindset")?.value||"", symQ=($("tsSymbol")?.value||"").toUpperCase().trim(), tagQ=($("tsTags")?.value||"").toLowerCase().trim();
+  const rows=Object.values(window._journalMap||{}).filter(j=>{
+    if(minRating && (+j.rating||0)<minRating) return false;
+    if(mindset && j.mindset!==mindset) return false;
+    if(symQ && !j.structure_key.toUpperCase().includes(symQ)) return false;
+    if(tagQ && !(j.tags||"").toLowerCase().includes(tagQ)) return false;
+    return true;
+  });
+  if(!rows.length){ $("tradesStrategiesList").innerHTML='<div class="sub" style="padding:10px">No journaled structures match these filters.</div>'; return; }
+  let h="<table><tr><th>Structure</th><th>Rating</th><th>Mindset</th><th>Tags</th><th>Thesis</th></tr>";
+  for(const j of rows) h+=`<tr><td>${j.structure_key}</td><td>${j.rating?"★".repeat(+j.rating):"—"}</td><td>${j.mindset||"—"}</td><td>${j.tags||"—"}</td><td>${(j.thesis||"—").slice(0,60)}</td></tr>`;
+  h+="</table>";
+  $("tradesStrategiesList").innerHTML=h;
+}
+["tsRating","tsMindset","tsSymbol","tsTags"].forEach(id=>$(id).addEventListener("input",renderTradesStrategies));
+
+// ================= PORTFOLIO OVERVIEW (allocation) =================
+function renderAllocation(curA){
+  const eq=curA.reduce((s,a)=>s+(parseFloat(a.equity_value)||0),0);
+  const opt=curA.reduce((s,a)=>s+(parseFloat(a.options_value)||0),0);
+  const cry=curA.reduce((s,a)=>s+(parseFloat(a.crypto_value)||0),0);
+  const tot=eq+opt+cry;
+  const pct=v=>tot?Math.round(100*v/tot):0;
+  $("allocStats").innerHTML=
+    statCard("Stocks & ETFs",fmt(eq),pct(eq)+"% of portfolio",null)+
+    statCard("Options",fmt(opt),pct(opt)+"% of portfolio",null)+
+    statCard("Crypto",fmt(cry),pct(cry)+"% of portfolio",null);
+  $("allocNote").textContent = tot? "" : "No account data yet.";
+}
+
+// ================= OPTION STRATEGY: CALCULATOR =================
+let calcLegN=1;
+function renderCalcLegBtns(){
+  $("calcLegBtns").innerHTML=[1,2,3,4].map(n=>`<button class="pill ${n===calcLegN?"on":""}" data-n="${n}">${n}</button>`).join(" ");
+  $("calcLegBtns").querySelectorAll(".pill").forEach(b=>b.onclick=()=>{calcLegN=+b.dataset.n; renderCalcLegBtns(); renderCalcLegRows();});
+}
+function renderCalcLegRows(){
+  let h="";
+  for(let i=0;i<calcLegN;i++){
+    h+=`<div class="legrow">
+      <div><label class="flbl">Type</label><select class="calc-type"><option value="put">Put</option><option value="call">Call</option></select></div>
+      <div><label class="flbl">Position</label><select class="calc-side"><option value="short">Short</option><option value="long">Long</option></select></div>
+      <div><label class="flbl">Strike</label><input type="number" class="calc-strike" step="0.5" placeholder="5500"></div>
+      <div><label class="flbl">Qty</label><input type="number" class="calc-qty" step="1" value="1"></div>
+      <div><label class="flbl">Price/ct</label><input type="number" class="calc-price" step="0.01" placeholder="2.20"></div>
+    </div>`;
+  }
+  $("calcLegs").innerHTML=h;
+  $("calcLegs").querySelectorAll("input,select").forEach(el=>el.oninput=renderCalcPreview);
+  renderCalcPreview();
+}
+function renderCalcPreview(){
+  const types=[...document.querySelectorAll(".calc-type")], sides=[...document.querySelectorAll(".calc-side")],
+    strikes=[...document.querySelectorAll(".calc-strike")], qtys=[...document.querySelectorAll(".calc-qty")], prices=[...document.querySelectorAll(".calc-price")];
+  const legs=[];
+  for(let i=0;i<types.length;i++){
+    const strike=parseFloat(strikes[i].value), qty=parseFloat(qtys[i].value), price=parseFloat(prices[i].value);
+    if(!strike||!qty||isNaN(price)){ $("calcPreview").innerHTML='<div class="sub">Fill in every leg to see the preview.</div>'; return; }
+    legs.push({pc:types[i].value, side:sides[i].value, strike, qty, per:price, mark:null, mult:100});
+  }
+  const e=economics(legs);
+  const strikesTxt=[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b).join("/");
+  $("calcPreview").innerHTML=`<div class="gs" style="margin-bottom:0;">
+    ${statCard("Detected strategy",e.name,strikesTxt,null)}
+    ${statCard("Net credit/debit",fmtS(Math.round(e.cr)),"at these prices",e.cr)}
+    ${statCard("Max loss",e.ml<0?fmt(e.ml):"$0","worst case",-1)}
+    ${statCard("Break-even",e.bes.join(" / ")||"—","",null)}
+  </div>`;
+}
+renderCalcLegBtns(); renderCalcLegRows();
+
+// ================= PAGE WIDGETS =================
 const WIDGET_DEFAULTS={
   overview:[{id:"accounts",width:50,visible:true},{id:"performance",width:50,visible:true},{id:"networth",width:100,visible:true}],
-  options:[{id:"perf",width:100,visible:true},{id:"structs",width:100,visible:true},{id:"pl",width:50,visible:true},{id:"cal",width:50,visible:true},{id:"closed",width:100,visible:true}],
-  stocks:[{id:"perf",width:100,visible:true},{id:"hold2005",width:50,visible:true},{id:"hold9521",width:50,visible:true},{id:"closed",width:100,visible:true}],
-  crypto:[{id:"balances",width:100,visible:true}],
+  "trades-overview":[{id:"pl",width:100,visible:true},{id:"closedopts",width:50,visible:true},{id:"closedstks",width:50,visible:true}],
+  calendar:[{id:"cal",width:100,visible:true}],
+  "portfolio-options":[{id:"perf",width:100,visible:true},{id:"structs",width:100,visible:true}],
+  "portfolio-stocks":[{id:"perf",width:100,visible:true},{id:"hold2005",width:50,visible:true},{id:"hold9521",width:50,visible:true}],
+  "portfolio-crypto":[{id:"balances",width:100,visible:true}],
   reader:[{id:"import",width:100,visible:true},{id:"close",width:100,visible:true},{id:"new",width:100,visible:true},{id:"addpos",width:100,visible:true},{id:"howto",width:100,visible:true}],
 };
 const CYCLE=[33,50,67,100];
@@ -698,7 +943,8 @@ function initWidgets(tab){
   });
   applyWLayout(tab);
 }
-["overview","options","stocks","crypto","reader"].forEach(initWidgets);
+Object.keys(WIDGET_DEFAULTS).forEach(initWidgets);
+
 function weekB(){const m={};for(const t of optT){const d=new Date(t.closed_at);const mo=new Date(d);mo.setDate(d.getDate()-((d.getDay()+6)%7));const k=mo.toISOString().slice(0,10);m[k]=(m[k]||0)+t.g;}return Object.keys(m).sort().map(k=>({end:k,gain:m[k],label:new Date(k).toLocaleString("en",{month:"short",day:"numeric"})}));}
 function renderChart(){
   const range=localStorage.getItem("p_range")||"YTD", gran=localStorage.getItem("p_gran")||"M";
@@ -884,7 +1130,7 @@ function initPills(pid,eid,list,key){
     // ---- snapshots (latest) ----
     const lastSnap = snaps.length? snaps.map(r=>r.snapshot_date).sort().pop() : null;
     const cur = snaps.filter(r=>r.snapshot_date===lastSnap);
-    ["opasof","stasof","ovasof","cryasof"].forEach(id=>$(id).textContent="as of "+(lastSnap||"—"));
+    ["opasof","stasof","ovasof","cryasof"].forEach(id=>{ if($(id)) $(id).textContent="as of "+(lastSnap||"—"); });
     $("asof").textContent="your data · ledger through "+(optT.concat(stkT).map(t=>t.closed_at).sort().pop()||"—").slice(0,10)+" · snapshot "+(lastSnap||"—");
     // structures — merge broker snapshot legs with manual (not-yet-synced) legs
     const legsRows=cur.filter(r=>r.kind==="option_leg");
@@ -911,6 +1157,7 @@ function initPills(pid,eid,list,key){
         <td class="neg">${st.ml<0?fmt(st.ml):"$0"}</td><td>${st.bes.join(" / ")||"—"}</td></tr>`;}
     $("structs").innerHTML=structs.length?`<table><tr><th>Strategy</th><th>Strikes</th><th>Expiry</th><th>Net premium</th><th>P/L (as-of)</th><th>Max loss</th><th>Break-even</th></tr>${rows}</table>`:'<div class="sub" style="padding:10px">No open structures in latest snapshot.</div>';
     renderStructViews();
+    renderTradesJournal(); renderTradesStrategies();
     const sumWins=wins.reduce((s,t)=>s+t.g,0), sumLossesAbs=Math.abs(losses.reduce((s,t)=>s+t.g,0));
     const profitFactor = sumLossesAbs>0 ? sumWins/sumLossesAbs : (sumWins>0?Infinity:0);
     const pfLabel = profitFactor===Infinity ? "∞" : profitFactor.toFixed(2);
@@ -955,6 +1202,7 @@ function initPills(pid,eid,list,key){
       statCard("Total crypto",fmt(cryTot),"as of "+(lastA||"—"),null,`Sum of crypto_value across all accounts. Source: accounts_history.csv. As of ${lastA||"—"}.`)+
       statCard("In Crypto ••••8817",fmt(parseFloat(c8817.crypto_value)||0),"",null,`crypto_value field, Crypto account (••••8817). Source: accounts_history.csv. As of ${lastA||"—"}.`)+
       statCard("In Options ••••2005",fmt(parseFloat(c2005.crypto_value)||0),"staked ETH/SOL",null,`crypto_value field, Options account (••••2005). Source: accounts_history.csv. As of ${lastA||"—"}.`);
+    renderAllocation(curA);
     // net worth trend
     const byDate={}; for(const a of accts){byDate[a.snapshot_date]=(byDate[a.snapshot_date]||0)+(parseFloat(a.total_value)||0);}
     const dts=Object.keys(byDate).sort();
@@ -989,7 +1237,8 @@ function initPills(pid,eid,list,key){
       statCard("Stocks value",fmt(s1.mv),"Options ••••2005",null,`Sum of qty × mark across stock holdings, Options acct. Source: positions_snapshots.csv, latest snapshot. As of ${lastSnap||"—"}.`)+statCard("Unrealized",fmtS(s1.pl),"",s1.pl,`Sum of (market value − cost basis) across stock holdings, Options acct. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`)+
       statCard("IRA value",fmt(s2.mv),"Roth IRA ••••9521",null,`Sum of qty × mark across stock holdings, Roth IRA. Source: positions_snapshots.csv, latest snapshot. As of ${lastSnap||"—"}.`)+statCard("IRA unrealized",fmtS(s2.pl),"",s2.pl,`Sum of (market value − cost basis) across stock holdings, Roth IRA. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`);
     // restore tab
-    const t=localStorage.getItem("p_tab")||"overview"; const btn=document.querySelector(`#tabs .tab[data-t="${t}"]`); if(btn)btn.click();
+    const initTab = localStorage.getItem("p_tab")||"overview";
+    if(NAV_GROUPS[initTab]) showSubView(initTab, subView[initTab]); else showTopTab(initTab);
     // reader needs ledger high-water mark
     window._hwm = trades.map(t=>t.closed_at).sort().pop() || "1970-01-01";
     window._ledgerRaw = ledger;
