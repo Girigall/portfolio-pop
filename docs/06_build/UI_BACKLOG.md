@@ -34,15 +34,17 @@ Source: `audit/OpenClaw_Research_Brief_Trading_Dashboards_findings_Tortuga.md` +
 ### Shipped (M10)
 - [x] Trade entry with live validation preview (detected strategy, net credit, realized P/L, max loss, breakevens) before saving — Close Trade card in Reader tab
 
-### Deferred — confirmed with Pop, not built yet
-- [ ] Dashboard widget customization (Organize-panels style: movable/resizable 12-col grid, add/remove cards, save/reset layout) — Pop: skip for now
-- [ ] Strategy journal (notes/thesis/tags per structure, not per leg) — needs a new `structure_journal.csv`, own milestone, never touches the 3 protected archive files
-- [ ] New Trade / Roll Trade manual entry — no clean row shape in current schema (opens live in `positions_snapshots.csv`, broker-snapshot-only by design); would need a new "open positions" concept first
-- [ ] Calendar Year and Week views (currently Month only)
-- [ ] Calendar metric toggles: realized / unrealized / net premium / strategies opened vs. closed
-- [ ] Portfolio Options sub-tabs: Expirations (positions-by-expiry with risk bar), Underlyings, Analysis
-- [ ] Explicit noun consistency pass: label every count as Strategy / Leg / Position / Event everywhere (cheap now, Tortuga's own audit shows what happens if you don't)
-- [ ] Table column organization + CSV export on Closed Trades tables (Tortuga's Trades table has both)
+### Shipped (M11) — the rest of the backlog, all in one pass
+- [x] Calendar Year and Week views (was Month only) + P/L-vs-trade-count metric toggle
+- [x] Portfolio Options sub-tabs: Expirations (positions-by-expiry with risk bar), Underlyings, Analysis (strategy-level win rate/avg P/L)
+- [x] CSV export on Closed Trades tables (Options + Stocks)
+- [x] Explicit noun consistency pass (Strategy/Leg/Position/Trade labeled consistently — e.g. Options subtitle now says "open structures" not "open positions")
+- [x] Dashboard widget customization — Overview tab only: Organize panels edit mode, drag-reorder, click-to-cycle width (33/50/67/100%), add/remove/reset, layout in `localStorage`
+- [x] Strategy journal — new `structure_journal.csv` (DATA_SPEC §4.7), 📝 panel per structure: thesis/tags/rating/mindset/notes, upsert by `structure_key`
+- [x] New Trade (open) + Add Stock Position manual entry — new `manual_positions.csv` (DATA_SPEC §4.6), merged into Open Structures/Holdings tagged "manual," auto-drops once the real broker snapshot catches up. "Roll" is deliberately not a separate mechanism — it's Close (M10) + New (M11) in sequence.
+
+### Deferred — not part of the Tortuga backlog, no immediate ask
+- [ ] Table column reordering/hiding on Closed Trades tables (CSV export shipped in M11; drag-to-reorder columns did not)
 
 ### Explicitly rejected (confirmed already correct or wrong to copy)
 - Tortuga's collateral/risk math (raw strike notional, e.g. $1.26M "risk" on a 2-lot short put) — audit flags this as dangerously wrong. Pop's dashboard already does payoff-based max loss (TDD §6); nothing to change, just don't regress it.
