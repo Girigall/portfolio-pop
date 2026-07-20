@@ -36,6 +36,8 @@ h1 { font-size:20px; font-weight:600; }
 section[hidden] { display:none; }
 table { width:100%; border-collapse:collapse; font-size:13px; }
 th { text-align:left; color:var(--mut); font-weight:500; font-size:11.5px; padding:7px 8px; border-bottom:1px solid var(--brd); white-space:nowrap; }
+th.dragcol { cursor:grab; }
+th.dragcol:hover { color:var(--ink); }
 td { padding:8px; border-bottom:1px solid var(--rowline); white-space:nowrap; vertical-align:top; }
 tr:last-child td { border-bottom:none; }
 .badge { display:inline-block; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; background:var(--chipok); color:var(--chipokt); }
@@ -623,6 +625,19 @@ document.querySelectorAll("#calmodepills .pill").forEach(p=>p.onclick=()=>{calMo
 $("calmetricpills").innerHTML=[["pl","P/L"],["n","Trades"]].map(([k,l])=>`<button class="pill" data-k="${k}">${l}</button>`).join(" ");
 document.querySelectorAll("#calmetricpills .pill").forEach(p=>p.onclick=()=>{calMetric=p.dataset.k; localStorage.setItem("p_calmetric",calMetric); renderCal();});
 let lastClosed={};
+const CLOSED_COLS=[
+  {key:"closed_at",label:"Closed",fmt:t=>t.closed_at.slice(2,10)},
+  {key:"symbol",label:"Symbol",fmt:t=>t.symbol},
+  {key:"strategy",label:"Strategy",fmt:t=>t.strategy||"—"},
+  {key:"strikes",label:"Strikes",fmt:t=>t.strikes||"—"},
+  {key:"qty",label:"Qty",fmt:t=>t.qty},
+  {key:"g",label:"P/L",right:true,fmt:t=>`<span class="${cls(t.g)}">${fmtS(t.g)}</span>`},
+];
+function loadColOrder(id){
+  try{ const saved=JSON.parse(localStorage.getItem("p_colorder_"+id)); if(Array.isArray(saved)&&saved.length===CLOSED_COLS.length&&saved.every(k=>CLOSED_COLS.some(c=>c.key===k))) return saved; }catch(e){}
+  return CLOSED_COLS.map(c=>c.key);
+}
+function saveColOrder(id,order){ localStorage.setItem("p_colorder_"+id, JSON.stringify(order)); }
 function renderClosed(list,elId,pillsId,key){
   const range=localStorage.getItem(key)||"YTD";
   document.querySelectorAll("#"+pillsId+" .pill[data-r]").forEach(p=>p.classList.toggle("on",p.dataset.r===range));
@@ -632,10 +647,26 @@ function renderClosed(list,elId,pillsId,key){
   lastClosed[elId]=rows;
   const net=rows.reduce((s,t)=>s+t.g,0);
   if(!rows.length){$(elId).innerHTML='<div class="sub" style="padding:10px">No trades in range.</div>';return;}
-  let h="<table><tr><th>Closed</th><th>Symbol</th><th>Strategy</th><th>Strikes</th><th>Qty</th><th style='text-align:right'>P/L</th></tr>";
-  for(const t of rows.slice(0,30))h+=`<tr><td>${t.closed_at.slice(2,10)}</td><td>${t.symbol}</td><td>${t.strategy||"—"}</td><td>${t.strikes||"—"}</td><td>${t.qty}</td><td style="text-align:right" class="${cls(t.g)}">${fmtS(t.g)}</td></tr>`;
+  const cols=loadColOrder(elId).map(k=>CLOSED_COLS.find(c=>c.key===k));
+  let h="<table><tr>"+cols.map(c=>`<th draggable="true" class="dragcol" data-key="${c.key}" title="Drag to reorder" ${c.right?'style="text-align:right"':''}>${c.label}</th>`).join("")+"</tr>";
+  for(const t of rows.slice(0,30))h+="<tr>"+cols.map(c=>`<td ${c.right?'style="text-align:right"':''}>${c.fmt(t)}</td>`).join("")+"</tr>";
   h+=`</table><div class="sub" style="margin-top:8px">${rows.length} trades · net <span class="${cls(net)}">${fmtS(net)}</span>${rows.length>30?" · latest 30":""}</div>`;
   $(elId).innerHTML=h;
+}
+function bindColDrag(elId,rerender){
+  const container=$(elId);
+  let dragKey=null;
+  container.addEventListener("dragstart", e=>{ const th=e.target.closest(".dragcol"); if(th)dragKey=th.dataset.key; });
+  container.addEventListener("dragover", e=>{ if(e.target.closest(".dragcol"))e.preventDefault(); });
+  container.addEventListener("drop", e=>{
+    const th=e.target.closest(".dragcol"); if(!th||!dragKey)return;
+    e.preventDefault();
+    const order=loadColOrder(elId);
+    const from=order.indexOf(dragKey), to=order.indexOf(th.dataset.key);
+    if(from>=0&&to>=0&&from!==to){ order.splice(to,0,order.splice(from,1)[0]); saveColOrder(elId,order); }
+    dragKey=null;
+    rerender();
+  });
 }
 function initPills(pid,eid,list,key){
   $(pid).innerHTML=["90d","YTD","All"].map(r=>`<button class="pill" data-r="${r}">${r}</button>`).join(" ")+` <button class="pill" data-export="1">⬇ CSV</button>`;
@@ -649,6 +680,7 @@ function initPills(pid,eid,list,key){
     const a=document.createElement("a"); a.href=url; a.download=eid+"_export.csv"; a.click();
   };
   renderClosed(list,eid,pid,key);
+  bindColDrag(eid, ()=>renderClosed(list,eid,pid,key));
 }
 
 (async function(){

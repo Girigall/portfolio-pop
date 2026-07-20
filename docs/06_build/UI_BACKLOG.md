@@ -42,9 +42,9 @@ Source: `audit/OpenClaw_Research_Brief_Trading_Dashboards_findings_Tortuga.md` +
 - [x] Dashboard widget customization — Overview tab only: Organize panels edit mode, drag-reorder, click-to-cycle width (33/50/67/100%), add/remove/reset, layout in `localStorage`
 - [x] Strategy journal — new `structure_journal.csv` (DATA_SPEC §4.7), 📝 panel per structure: thesis/tags/rating/mindset/notes, upsert by `structure_key`
 - [x] New Trade (open) + Add Stock Position manual entry — new `manual_positions.csv` (DATA_SPEC §4.6), merged into Open Structures/Holdings tagged "manual," auto-drops once the real broker snapshot catches up. "Roll" is deliberately not a separate mechanism — it's Close (M10) + New (M11) in sequence.
+- [x] Table column drag-to-reorder on Closed Trades tables (Options + Stocks), order persisted per table in `localStorage`
 
-### Deferred — not part of the Tortuga backlog, no immediate ask
-- [ ] Table column reordering/hiding on Closed Trades tables (CSV export shipped in M11; drag-to-reorder columns did not)
+Tortuga audit fully addressed — every item from the steal-list is shipped or explicitly rejected (see below).
 
 ### Explicitly rejected (confirmed already correct or wrong to copy)
 - Tortuga's collateral/risk math (raw strike notional, e.g. $1.26M "risk" on a 2-lot short put) — audit flags this as dangerously wrong. Pop's dashboard already does payoff-based max loss (TDD §6); nothing to change, just don't regress it.
