@@ -31,6 +31,12 @@ Source: Pop's M3 review, 2026-07-18. Every item mapped to a milestone. This file
 - [ ] Compliance chips (🟢/🟡/🔴 rulebook tolerance zones) — blocked on `opened_at` per position, which the Robinhood connector returns but `positions_snapshots.csv` never captures. Adding it means a schema change to a protected archive file — needs the exact-diff approval per the hard rule before any code changes, not something to build unprompted.
 - [ ] "Avg time in trade" / "avg % return on risk" stat cards (deferred since M3) — same `opened_at` blocker as compliance chips.
 
+## Shipped (M12) — structural/visual match, not just features
+- [x] Sidebar nested expand for Options (All/Expirations/Underlyings/Analysis as indented sub-items, connecting line) — replaces the in-page pill row
+- [x] Win Rate + Profit Factor (new stat) as Chart.js doughnut gauges instead of plain numbers
+- [x] Denser default widget grid (Overview/Options/Stocks now default to side-by-side panels, not full-width stacked)
+- [x] Persistent year ribbon (Jan–Dec totals) above the calendar in every mode
+
 ## Tortuga Trades audit (2026-07-19)
 
 Source: `audit/OpenClaw_Research_Brief_Trading_Dashboards_findings_Tortuga.md` + `audit/screenshots/Tortuga Trades/`. Full findings and steal/avoid lists live in that doc — this section just tracks what's shipped vs. deferred.

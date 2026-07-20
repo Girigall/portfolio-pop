@@ -87,6 +87,14 @@ textarea { resize:vertical; }
 .tab .ic { width:18px; text-align:center; font-size:14px; }
 .tab.on { background:var(--acc); color:#fff; }
 .tab:hover:not(.on) { background:var(--rowline); color:var(--ink); }
+.navgroup { display:flex; flex-direction:column; }
+.tab .chev { margin-left:auto; font-size:12px; transition:transform .15s; }
+.tab.expanded .chev { transform:rotate(90deg); }
+.navsub { display:flex; flex-direction:column; margin:2px 0 2px 24px; padding-left:10px; border-left:1px solid var(--brd); gap:1px; }
+.navsub[hidden] { display:none; }
+.subitem { display:block; width:100%; text-align:left; border:none; background:transparent; color:var(--mut); border-radius:6px; padding:6px 10px; font-size:12.5px; cursor:pointer; }
+.subitem.on { color:var(--acc); font-weight:600; }
+.subitem:hover:not(.on) { background:var(--rowline); color:var(--ink); }
 .sidefoot { margin-top:auto; display:flex; flex-direction:column; gap:9px; padding-top:14px; border-top:1px solid var(--brd); }
 .mode { align-self:flex-start; border:1px solid var(--brd); background:var(--bg); color:var(--mut); border-radius:8px; padding:5px 10px; cursor:pointer; font-size:13px; }
 .sidelinks { font-size:11px; color:var(--mut); }
@@ -119,7 +127,15 @@ textarea { resize:vertical; }
     </div>
     <nav class="navlist" id="tabs">
       <button class="tab on" data-t="overview"><span class="ic">◧</span>Overview</button>
-      <button class="tab" data-t="options"><span class="ic">Σ</span>Options</button>
+      <div class="navgroup">
+        <button class="tab" data-t="options" id="navOptions"><span class="ic">Σ</span>Options<span class="chev">›</span></button>
+        <div class="navsub" id="navOptionsSub" hidden>
+          <button class="subitem on" data-v="all">All</button>
+          <button class="subitem" data-v="exp">Expirations</button>
+          <button class="subitem" data-v="und">Underlyings</button>
+          <button class="subitem" data-v="ana">Analysis</button>
+        </div>
+      </div>
       <button class="tab" data-t="stocks"><span class="ic">▤</span>Stocks</button>
       <button class="tab" data-t="crypto"><span class="ic">◈</span>Crypto</button>
       <button class="tab" data-t="reader"><span class="ic">⇩</span>Reader</button>
@@ -197,10 +213,7 @@ textarea { resize:vertical; }
             <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
           </div>
           <div class="card" style="margin-bottom:14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
-              <div class="sub">One row = one structure · marks as of the snapshot date above</div>
-              <span id="structviewpills"></span>
-            </div>
+            <div class="sub" style="margin-bottom:10px;">One row = one structure · marks as of the snapshot date above · switch view from the sidebar</div>
             <div class="tw" id="structs"></div>
             <div class="tw" id="structsExp" hidden></div>
             <div class="tw" id="structsUnd" hidden></div>
@@ -225,6 +238,7 @@ textarea { resize:vertical; }
             <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
           </div>
           <div class="card" style="margin-bottom:14px;">
+            <div id="calribbon" style="margin-bottom:12px;"></div>
             <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
               <span id="calmodepills"></span>
               <span id="calmetricpills"></span>
@@ -459,7 +473,13 @@ document.querySelectorAll("#tabs .tab").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("#tabs .tab").forEach(x=>x.classList.toggle("on",x===b));
   ["overview","options","stocks","crypto","reader"].forEach(t=>$("t-"+t).hidden=(t!==b.dataset.t));
   localStorage.setItem("p_tab",b.dataset.t);
+  $("navOptions").classList.toggle("expanded", b.dataset.t==="options");
+  $("navOptionsSub").hidden = b.dataset.t!=="options";
   if(b.dataset.t==="options"&&chart)chart.resize();
+});
+document.querySelectorAll("#navOptionsSub .subitem").forEach(b=>b.onclick=()=>{
+  $("navOptions").click();
+  structView=b.dataset.v; localStorage.setItem("p_structview",structView); renderStructViews();
 });
 function detect(legs){
   const puts=legs.filter(l=>l.pc==="put");
@@ -485,6 +505,21 @@ function economics(legs){
   return {cr, pl:ok?pl:null, name:detect(legs), ml:maxLoss(legs,cr), bes:breakevens(legs,cr)};
 }
 function statCard(l,v,c,s,tip){return `<div class="card stat"${tip?` title="${tip.replace(/"/g,"&quot;")}"`:""}><div class="lbl">${l}${tip?' <span style="color:var(--mut);font-size:10px;cursor:help;">ⓘ</span>':""}</div><div class="val ${s==null?"":cls(s)}">${v}</div><div class="ctx">${c||""}</div></div>`;}
+function gaugeCard(l,id,c,tip){return `<div class="card stat"${tip?` title="${tip.replace(/"/g,"&quot;")}"`:""}><div class="lbl">${l}${tip?' <span style="color:var(--mut);font-size:10px;cursor:help;">ⓘ</span>':""}</div><div style="height:76px;position:relative;margin-top:2px;"><canvas id="${id}"></canvas></div><div class="ctx">${c||""}</div></div>`;}
+function gaugeChart(canvas,pctFill,centerLabel,good){
+  const color=good?css("--grn"):css("--red"), track=css("--grid");
+  return new Chart(canvas,{type:"doughnut",
+    data:{datasets:[{data:[pctFill,100-pctFill],backgroundColor:[color,track],borderWidth:0}]},
+    options:{circumference:270,rotation:-135,cutout:"72%",responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{enabled:false}}},
+    plugins:[{id:"centerText",afterDraw(chart){
+      const {ctx,chartArea:{width,height,top,left}}=chart;
+      ctx.save(); ctx.font="700 17px -apple-system,sans-serif"; ctx.fillStyle=color;
+      ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText(centerLabel, left+width/2, top+height/2);
+      ctx.restore();
+    }}]});
+}
 
 let chart, nwChart, monthB=[], optT=[], stkT=[], structs=[];
 let calMode=localStorage.getItem("p_calmode")||"month", calMetric=localStorage.getItem("p_calmetric")||"pl", calAnchor=new Date();
@@ -547,7 +582,7 @@ function renderAnalysis(){
   $("structsAna").innerHTML=h;
 }
 function renderStructViews(){
-  document.querySelectorAll("#structviewpills .pill").forEach(p=>p.classList.toggle("on",p.dataset.v===structView));
+  document.querySelectorAll("#navOptionsSub .subitem").forEach(p=>p.classList.toggle("on",p.dataset.v===structView));
   const map={all:"structs",exp:"structsExp",und:"structsUnd",ana:"structsAna"};
   Object.values(map).forEach(id=>$(id).hidden=true);
   $(map[structView]).hidden=false;
@@ -555,8 +590,6 @@ function renderStructViews(){
   if(structView==="und")renderUnderlyings();
   if(structView==="ana")renderAnalysis();
 }
-$("structviewpills").innerHTML=[["all","All"],["exp","Expirations"],["und","Underlyings"],["ana","Analysis"]].map(([k,l])=>`<button class="pill" data-v="${k}">${l}</button>`).join(" ");
-document.querySelectorAll("#structviewpills .pill").forEach(p=>p.onclick=()=>{structView=p.dataset.v; localStorage.setItem("p_structview",structView); renderStructViews();});
 function openJournal(key){
   const st=structs.find(s=>s.key===key);
   const j=window._journalMap[key]||{};
@@ -592,9 +625,9 @@ $("jSave").onclick=()=>{
 
 // ================= PAGE WIDGETS (all tabs) =================
 const WIDGET_DEFAULTS={
-  overview:[{id:"accounts",width:100,visible:true},{id:"performance",width:100,visible:true},{id:"networth",width:100,visible:true}],
-  options:[{id:"perf",width:100,visible:true},{id:"structs",width:100,visible:true},{id:"pl",width:100,visible:true},{id:"cal",width:100,visible:true},{id:"closed",width:100,visible:true}],
-  stocks:[{id:"perf",width:100,visible:true},{id:"hold2005",width:100,visible:true},{id:"hold9521",width:100,visible:true},{id:"closed",width:100,visible:true}],
+  overview:[{id:"accounts",width:50,visible:true},{id:"performance",width:50,visible:true},{id:"networth",width:100,visible:true}],
+  options:[{id:"perf",width:100,visible:true},{id:"structs",width:100,visible:true},{id:"pl",width:50,visible:true},{id:"cal",width:50,visible:true},{id:"closed",width:100,visible:true}],
+  stocks:[{id:"perf",width:100,visible:true},{id:"hold2005",width:50,visible:true},{id:"hold9521",width:50,visible:true},{id:"closed",width:100,visible:true}],
   crypto:[{id:"balances",width:100,visible:true}],
   reader:[{id:"import",width:100,visible:true},{id:"close",width:100,visible:true},{id:"new",width:100,visible:true},{id:"addpos",width:100,visible:true},{id:"howto",width:100,visible:true}],
 };
@@ -692,7 +725,26 @@ function cellBg(v){ if(v==null||v===0)return "transparent"; return calMetric==="
 function cellTc(v){ if(v==null)return "var(--mut)"; return calMetric==="pl"?(v>=0?"var(--chipokt)":"var(--chipbadt)"):"var(--chipokt)"; }
 function totTxt(t){ return calMetric==="pl"?fmtS(Math.round(t.pl)):t.n+" trades"; }
 function totCls(t){ return calMetric==="pl"?cls(t.pl):""; }
+function renderCalRibbon(){
+  const y=calAnchor.getFullYear();
+  const mn=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const byMonth={}; for(const b of monthB){ if(b.end.slice(0,4)===String(y)) byMonth[b.end.slice(5,7)]=b.gain; }
+  let h='<div style="display:grid;grid-template-columns:repeat(12,1fr);gap:4px;">';
+  for(let i=0;i<12;i++){
+    const mk=String(i+1).padStart(2,"0");
+    const v=byMonth[mk];
+    const bg=v==null||v===0?"transparent":(v>=0?"var(--chipok)":"var(--chipbad)");
+    const tc=v==null?"var(--mut)":(v>=0?"var(--chipokt)":"var(--chipbadt)");
+    h+=`<div style="border:1px solid var(--rowline);border-radius:6px;padding:5px 2px;text-align:center;background:${bg};">
+      <div style="color:var(--mut);font-size:9px;">${mn[i]}</div>
+      <div style="color:${tc};font-size:10px;font-weight:600;">${v!=null?fmtS(Math.round(v)):"—"}</div>
+    </div>`;
+  }
+  h+="</div>";
+  $("calribbon").innerHTML=h;
+}
 function renderCal(){
+  renderCalRibbon();
   const agg=dayAgg();
   document.querySelectorAll("#calmodepills .pill").forEach(p=>p.classList.toggle("on",p.dataset.m===calMode));
   document.querySelectorAll("#calmetricpills .pill").forEach(p=>p.classList.toggle("on",p.dataset.k===calMetric));
@@ -859,15 +911,23 @@ function initPills(pid,eid,list,key){
         <td class="neg">${st.ml<0?fmt(st.ml):"$0"}</td><td>${st.bes.join(" / ")||"—"}</td></tr>`;}
     $("structs").innerHTML=structs.length?`<table><tr><th>Strategy</th><th>Strikes</th><th>Expiry</th><th>Net premium</th><th>P/L (as-of)</th><th>Max loss</th><th>Break-even</th></tr>${rows}</table>`:'<div class="sub" style="padding:10px">No open structures in latest snapshot.</div>';
     renderStructViews();
+    const sumWins=wins.reduce((s,t)=>s+t.g,0), sumLossesAbs=Math.abs(losses.reduce((s,t)=>s+t.g,0));
+    const profitFactor = sumLossesAbs>0 ? sumWins/sumLossesAbs : (sumWins>0?Infinity:0);
+    const pfLabel = profitFactor===Infinity ? "∞" : profitFactor.toFixed(2);
+    const pfPct = profitFactor===Infinity ? 100 : Math.min(100, profitFactor/3*100);
+    const winRatePct = optT.length ? Math.round(100*wins.length/optT.length) : 0;
     $("stats").innerHTML=
       statCard("Total options P/L",fmtS(total),"realized, all-time",total,"Sum of realized_gain across all closed option trades, all-time. Source: trades_ledger.csv.")+
       statCard("YTD",fmtS(ytd),new Date().getFullYear()+" realized",ytd,`Sum of realized_gain for option trades closed since Jan 1, ${new Date().getFullYear()}. Source: trades_ledger.csv.`)+
       statCard("This month",fmtS(mtd),"realized",mtd,"Sum of realized_gain for option trades closed this calendar month. Source: trades_ledger.csv.")+
-      statCard("Win rate",optT.length?Math.round(100*wins.length/optT.length)+"%":"—","per closed trade",null,"Closed trades with realized_gain > 0, as a % of all closed option trades. Source: trades_ledger.csv.")+
+      gaugeCard("Win rate","gaugeWinRate","per closed trade","Closed trades with realized_gain > 0, as a % of all closed option trades. Source: trades_ledger.csv.")+
+      gaugeCard("Profit factor","gaugeProfitFactor","gross wins ÷ gross losses","Sum of winning realized_gain ÷ |sum of losing realized_gain|. ≥3 saturates the ring at 100%. Source: trades_ledger.csv.")+
       statCard("Avg win",wins.length?fmt(wins.reduce((s,t)=>s+t.g,0)/wins.length):"—","",1,"Average realized_gain across winning closed trades. Source: trades_ledger.csv.")+
       statCard("Avg loss",losses.length?fmt(losses.reduce((s,t)=>s+t.g,0)/losses.length):"—","",-1,"Average realized_gain across losing closed trades. Source: trades_ledger.csv.")+
       statCard("Open premium",fmtS(openPrem),"as of "+(lastSnap||"—"),openPrem,`Sum of net credit (short − long, ×qty×multiplier) across open structures. Source: positions_snapshots.csv, latest snapshot. As of ${lastSnap||"—"}.`)+
       statCard("Open risk",fmt(openRisk),"max loss if all breach",-1,`Sum of max loss (payoff evaluation across candidate spot prices, not a width shortcut) across open structures, worst case. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`);
+    gaugeChart($("gaugeWinRate"), winRatePct, winRatePct+"%", winRatePct>=50);
+    gaugeChart($("gaugeProfitFactor"), pfPct, pfLabel, profitFactor>=1);
     $("pills").innerHTML=["30d","90d","6M","YTD","ALL"].map(r=>`<button class="pill" data-r="${r}">${r}</button>`).join(" ");
     $("gran").innerHTML=["W","M"].map(g=>`<button class="pill" data-g="${g}">${g==="W"?"Week":"Month"}</button>`).join(" ");
     document.querySelectorAll("#pills .pill").forEach(p=>p.onclick=()=>{localStorage.setItem("p_range",p.dataset.r);renderChart();});
