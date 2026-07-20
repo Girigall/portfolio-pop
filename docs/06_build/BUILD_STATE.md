@@ -27,7 +27,7 @@
 | M5 | **Closed trades + stocks sections** | Full v1 surface | PRD F5–F6 | R5, D4 | ✅ 2026-07-18 |
 | M6 | **F9 validator** — screenshot → confirm → validate → journal | Pre-trade workflow | TDD §5.1, RULEBOOK §0.1 | V1–V4 | ✅ 2026-07-18 |
 | M7 | **Bake** — two Fridays + failure drill | v1 done | TEST_PLAN §6 | bake gates | ⬜ |
-| M8 | **Standalone web app (THE product)** — static SPA at repo root (`index.html`), reads history CSVs via fetch; F10 Reader with FIFO pairing + high-water-mark + cross-source dedupe; real account names (Options/Equity/Crypto) | Dashboard at a URL, any device, zero AI dependency | TDD §1 | P1–P6 | ✅ built 2026-07-18 · ⏳ Pop enables Pages (Settings→Pages→main/root) |
+| M8 | **Standalone web app (THE product)** — static SPA at repo root (`index.html`), reads history CSVs via fetch; F10 Reader with FIFO pairing + high-water-mark + cross-source dedupe; real account names (Options/Equity/Crypto) | Dashboard at a URL, any device, zero AI dependency | TDD §1 | P1–P6 | ✅ 2026-07-19 — live at https://girigall.github.io/portfolio-pop/ |
 | M8.1 | **Platform shell** — sidebar app layout (nav rail: Overview/Options/Stocks/Crypto/Reader), page headers per section, uppercase category labels grouping cards (Accounts/Performance/Trends, Positions/Activity, etc.), brand block + net worth in sidebar. Same data/render functions, zero JS logic changes — pure structural/CSS pass. | Looks like a product, not a single-page dashboard | DESIGN_SPEC §2–4 | P1–P6 (rerun) | ✅ 2026-07-19 |
 | M9 | **Collector independence** — local Python script + macOS cron replaces the Claude courier | Pipeline with zero AI dependency | TDD §1 comp.2 | A-tests rerun | ⬜ |
 
@@ -40,6 +40,7 @@
 | 2026-07-17 | **M1 shipped:** archive_generate.py + archive_job.md, first snapshot (94 trades / 41 positions / 5 accounts), tests A1/A2/A5 passed, options ledger reconciled to broker exact ($12,337.24), Friday task scheduled (5:34 PM local). Notable: Jul 17 spread closed early +$570; three BWBs open (Jul 29, Aug 3, Aug 6); Jul 29 fly has pending closing order | this session |
 
 | 2026-07-19 | **M8.1 shipped:** Pop viewed the live Pages URL and said it "looks like a dashboard, not a digital product" — flat page, top pill-tabs, no visual categories. Rebuilt shell: left sidebar nav (icons+labels), per-page headers, uppercase section labels (Performance/Positions/Holdings/etc.) grouping the same cards. No JS/data logic touched — same IDs, same functions, verified via node syntax check + required-ID scan before push. | 9ca1a7e |
+| 2026-07-19 | **M8 Pages access confirmed:** repo is actually public (not private, docs were stale); Pages was already enabled and building from main/root. Verified live URL in-browser: Overview + Options tabs render real data (net worth $106,729, structures table, P/L chart), zero console errors. Flipped M8 to ✅ with the live URL. | n/a (docs only) |
 
 ## WIP notes
 
