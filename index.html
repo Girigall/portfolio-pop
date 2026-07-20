@@ -46,6 +46,14 @@ tr:last-child td { border-bottom:none; }
 .drop { border:2px dashed var(--brd); border-radius:12px; padding:26px; text-align:center; color:var(--mut); cursor:pointer; }
 .drop.over { border-color:var(--acc); color:var(--acc); }
 button.act { border:1px solid var(--acc); background:var(--acc); color:#fff; border-radius:8px; padding:8px 16px; cursor:pointer; font-size:13px; }
+button.act:disabled { background:var(--brd); border-color:var(--brd); color:var(--mut); cursor:not-allowed; }
+.flbl { display:block; font-size:11px; color:var(--mut); margin-bottom:3px; }
+input[type=text], input[type=date], input[type=number], select, textarea {
+  width:100%; background:var(--bg); color:var(--ink); border:1px solid var(--brd); border-radius:7px; padding:6px 8px; font-size:13px; font-family:inherit; }
+textarea { resize:vertical; }
+.legrow { display:grid; grid-template-columns:1fr 1fr 1fr 0.8fr 1fr 1fr; gap:8px; margin-bottom:8px; align-items:end; }
+.legrow .flbl:first-child { }
+@media (max-width:760px) { .legrow { grid-template-columns:1fr 1fr; } }
 
 /* ---- app shell ---- */
 .app { display:flex; min-height:100vh; }
@@ -180,6 +188,21 @@ button.act { border:1px solid var(--acc); background:var(--acc); color:#fff; bor
         <div class="drop" id="drop">📥 Drop your Robinhood CSV here, or click to choose<input type="file" id="file" accept=".csv" style="display:none"></div>
         <div id="rdout" style="margin-top:12px;"></div>
       </div>
+      <div class="seclbl">Close a Trade</div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="sub" style="margin-bottom:10px;">Manually record a structure you already closed at the broker. Strategy, credit, and realized P/L compute live as you type. Nothing saves until you download and replace the file yourself — same as the CSV importer above.</div>
+        <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-bottom:4px;">
+          <div><label class="flbl">Closed date</label><input type="date" id="ctDate"></div>
+          <div><label class="flbl">Symbol</label><input type="text" id="ctSym" placeholder="SPX" style="text-transform:uppercase;"></div>
+          <div><label class="flbl">Expiry</label><input type="date" id="ctExp"></div>
+          <div><label class="flbl">Legs</label><div id="ctLegBtns"></div></div>
+        </div>
+        <div id="ctLegs" style="margin-top:10px;"></div>
+        <div style="margin-top:4px;"><label class="flbl">Thesis (optional)</label><textarea id="ctThesis" rows="2" placeholder="Why you took this trade / what happened"></textarea></div>
+        <div id="ctPreview" style="margin-top:12px;"></div>
+        <div style="margin-top:12px;"><button class="act" id="ctSave" disabled>⬇ Generate updated trades_ledger.csv</button></div>
+        <div id="ctSaveOut" style="margin-top:10px;"></div>
+      </div>
       <div class="seclbl">How It Works</div>
       <div class="card"><div class="sub" style="line-height:1.7">1. Robinhood app → Account → Reports and statements → generate activity report → download CSV.<br>
         2. Drop it here. The reader pairs fills into trades (FIFO per contract), computes realized P/L, and keeps only trades AFTER your ledger's last date — no doubles, ever.<br>
@@ -241,6 +264,12 @@ function payoff(legs,cr,S){let v=cr;for(const l of legs){const i=l.pc==="put"?Ma
 function maxLoss(legs,cr){const ks=legs.map(l=>l.strike);const pts=[0,...ks,Math.max(...ks)*2];return Math.min(...pts.map(S=>payoff(legs,cr,S)));}
 function breakevens(legs,cr){const ks=[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b);const pts=[0,...ks,Math.max(...ks)*2];const out=[];
   for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1],va=payoff(legs,cr,a),vb=payoff(legs,cr,b);if((va<0)!==(vb<0))out.push(Math.round(a+(0-va)*(b-a)/(vb-va)));}return out;}
+function economics(legs){
+  const cr=legs.reduce((s,l)=>s+(l.side==="short"?l.per:-l.per)*l.qty*l.mult,0);
+  let pl=0, ok=true;
+  for(const l of legs){ if(l.mark==null){ok=false;continue;} pl+=(l.side==="short"?(l.per-l.mark):(l.mark-l.per))*l.qty*l.mult; }
+  return {cr, pl:ok?pl:null, name:detect(legs), ml:maxLoss(legs,cr), bes:breakevens(legs,cr)};
+}
 function statCard(l,v,c,s){return `<div class="card stat"><div class="lbl">${l}</div><div class="val ${s==null?"":cls(s)}">${v}</div><div class="ctx">${c||""}</div></div>`;}
 
 let chart, nwChart, monthB=[], optT=[], stkT=[], calOff=0;
@@ -330,10 +359,8 @@ function initPills(pid,eid,list,key){
     }
     let openPrem=0, openRisk=0, rows="";
     const structs=Object.values(groups).map(legs=>{legs.sort((a,b)=>a.strike-b.strike);
-      const cr=legs.reduce((s,l)=>s+(l.side==="short"?l.per:-l.per)*l.qty*l.mult,0);
-      let pl=0, ok=true;
-      for(const l of legs){ if(l.mark==null){ok=false;continue;} pl+=(l.side==="short"?(l.per-l.mark):(l.mark-l.per))*l.qty*l.mult; }
-      return {legs,name:detect(legs),cr,pl:ok?pl:null,ml:maxLoss(legs,cr),bes:breakevens(legs,cr),sym:legs[0].sym,expiry:legs[0].expiry,strikes:[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b)};
+      const e=economics(legs);
+      return {legs,name:e.name,cr:e.cr,pl:e.pl,ml:e.ml,bes:e.bes,sym:legs[0].sym,expiry:legs[0].expiry,strikes:[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b)};
     }).sort((a,b)=>a.expiry.localeCompare(b.expiry));
     for(const st of structs){ openPrem+=st.cr; if(st.ml<0)openRisk+=-st.ml;
       const legsTxt=st.legs.map(l=>`${l.side==="short"?"−":"+"}${l.qty} ${l.strike}${l.pc[0].toUpperCase()}`).join("  ");
@@ -483,6 +510,76 @@ $("file").onchange=e=>{if(e.target.files[0])handleFile(e.target.files[0]);};
 $("drop").ondragover=e=>{e.preventDefault();$("drop").classList.add("over");};
 $("drop").ondragleave=()=>$("drop").classList.remove("over");
 $("drop").ondrop=e=>{e.preventDefault();$("drop").classList.remove("over");if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);};
+
+// ================= CLOSE TRADE (manual entry) =================
+let ctLegN=1;
+function renderCTLegBtns(){
+  $("ctLegBtns").innerHTML=[1,2,3,4].map(n=>`<button class="pill ${n===ctLegN?"on":""}" data-n="${n}">${n}</button>`).join(" ");
+  $("ctLegBtns").querySelectorAll(".pill").forEach(b=>b.onclick=()=>{ctLegN=+b.dataset.n; renderCTLegBtns(); renderCTLegRows();});
+}
+function renderCTLegRows(){
+  let h="";
+  for(let i=0;i<ctLegN;i++){
+    h+=`<div class="legrow">
+      <div><label class="flbl">Type</label><select class="ct-type"><option value="put">Put</option><option value="call">Call</option></select></div>
+      <div><label class="flbl">Position</label><select class="ct-side"><option value="short">Short</option><option value="long">Long</option></select></div>
+      <div><label class="flbl">Strike</label><input type="number" class="ct-strike" step="0.5" placeholder="5500"></div>
+      <div><label class="flbl">Qty</label><input type="number" class="ct-qty" step="1" value="1"></div>
+      <div><label class="flbl">Open $/ct</label><input type="number" class="ct-open" step="0.01" placeholder="2.20"></div>
+      <div><label class="flbl">Close $/ct</label><input type="number" class="ct-close" step="0.01" placeholder="0.80"></div>
+    </div>`;
+  }
+  $("ctLegs").innerHTML=h;
+  $("ctLegs").querySelectorAll("input,select").forEach(el=>el.oninput=renderCTPreview);
+  renderCTPreview();
+}
+function readCTLegs(){
+  const types=[...document.querySelectorAll(".ct-type")], sides=[...document.querySelectorAll(".ct-side")],
+    strikes=[...document.querySelectorAll(".ct-strike")], qtys=[...document.querySelectorAll(".ct-qty")],
+    opens=[...document.querySelectorAll(".ct-open")], closes=[...document.querySelectorAll(".ct-close")];
+  const legs=[];
+  for(let i=0;i<types.length;i++){
+    const strike=parseFloat(strikes[i].value), qty=parseFloat(qtys[i].value), open=parseFloat(opens[i].value), close=parseFloat(closes[i].value);
+    if(!strike||!qty||isNaN(open)||isNaN(close))return null;
+    legs.push({pc:types[i].value, side:sides[i].value, strike, qty, per:open, mark:close, mult:100});
+  }
+  return legs;
+}
+function renderCTPreview(){
+  const legs=readCTLegs();
+  const sym=$("ctSym").value.trim().toUpperCase(), date=$("ctDate").value, exp=$("ctExp").value;
+  if(!legs||!sym||!date||!exp){ $("ctPreview").innerHTML='<div class="sub">Fill in date, symbol, expiry, and every leg to see the preview.</div>'; $("ctSave").disabled=true; window._ctRow=null; return; }
+  const e=economics(legs);
+  const strikesTxt=[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b).join("/");
+  $("ctPreview").innerHTML=`<div class="gs" style="margin-bottom:0;">
+    ${statCard("Detected strategy",e.name,strikesTxt,null)}
+    ${statCard("Net open credit/debit",fmtS(Math.round(e.cr)),"at open",e.cr)}
+    ${statCard("Realized P/L",e.pl==null?"n/a":fmtS(Math.round(e.pl)),"→ becomes realized_gain",e.pl)}
+    ${statCard("Max loss (was carrying)",e.ml<0?fmt(e.ml):"$0","for reference",-1)}
+    ${statCard("Break-even",e.bes.join(" / ")||"—","",null)}
+  </div>`;
+  const qty=Math.min(...legs.map(l=>l.qty));
+  const gain=Math.round((e.pl||0)*100)/100;
+  const row={trade_id:`${date}T20:00:00Z_${sym}_${qty}_${gain}`, closed_at:`${date}T20:00:00Z`, account:"2005", symbol:sym,
+    asset_class:"option", quantity:String(qty), close_price:"", realized_gain:String(gain),
+    strategy:e.name, strikes:strikesTxt, expiry:exp, source:"manual_entry", broker:"robinhood", thesis:$("ctThesis").value.trim(), vix_at_entry:""};
+  window._ctRow=row;
+  const dup=(window._ledgerRaw||[]).some(r=>r.trade_id===row.trade_id);
+  $("ctSave").disabled=false;
+  $("ctSaveOut").innerHTML = dup ? '<div style="color:var(--amber)">⚠ A trade with this exact date/symbol/qty/gain already exists in your ledger — check you\'re not double-entering before downloading.</div>' : "";
+}
+$("ctDate").oninput=renderCTPreview; $("ctSym").oninput=renderCTPreview; $("ctExp").oninput=renderCTPreview; $("ctThesis").oninput=renderCTPreview;
+$("ctSave").onclick=()=>{
+  if(!window._ctRow)return;
+  const cols=Object.keys(window._ledgerRaw?.[0]||window._ctRow);
+  const merged=(window._ledgerRaw||[]).concat([window._ctRow]);
+  const blob=new Blob([csvify(merged,cols)],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  $("ctSaveOut").innerHTML=`<div style="margin-bottom:8px"><b>1</b> new closed trade · <span class="${cls(parseFloat(window._ctRow.realized_gain))}">${fmtS(parseFloat(window._ctRow.realized_gain))}</span></div>
+    <a class="act" style="text-decoration:none" href="${url}" download="trades_ledger.csv">⬇ Download updated trades_ledger.csv</a>
+    <div class="sub" style="margin-top:8px">Replace <code>05_Portfolio/history/trades_ledger.csv</code> in your Drive folder with this file. Append-only: your ${(window._ledgerRaw||[]).length} existing rows are all preserved inside.</div>`;
+};
+renderCTLegBtns(); renderCTLegRows();
 </script>
 </body>
 </html>

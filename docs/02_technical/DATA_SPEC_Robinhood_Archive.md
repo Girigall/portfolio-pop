@@ -68,7 +68,7 @@ Full account numbers are passed to tools unmasked; UI always masks to last 4.
 | strategy | string | `PCS` | filled when matched to remembered structure, else blank |
 | strikes | string | `7270/7260` | same condition |
 | expiry | ISO date | `2026-07-10` | same condition |
-| source | enum | `connector` / `csv_backfill` / `validator` | provenance always recorded |
+| source | enum | `connector` / `csv_backfill` / `validator` / `reader` / `manual_entry` | provenance always recorded. `reader` = F10 CSV importer; `manual_entry` = M10 Close Trade form (both client-side, both open enum by design — see `asset_class` note above) |
 | broker | enum | `robinhood` | portability: schema is broker-agnostic; new brokers (e.g., tastytrade) add rows, never migrations |
 | thesis | string | `IV elevated, support held` | F9 journal capture; blank for auto-ingested rows |
 | vix_at_entry | decimal | `15.57` | F9 capture (legacy schema field) |
