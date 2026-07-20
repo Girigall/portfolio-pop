@@ -59,8 +59,8 @@ textarea { resize:vertical; }
 .legrow .flbl:first-child { }
 @media (max-width:760px) { .legrow { grid-template-columns:1fr 1fr; } }
 
-/* ---- overview widgets ---- */
-#wGrid { display:flex; flex-wrap:wrap; }
+/* ---- page widgets (all tabs) ---- */
+[id^="wGrid-"] { display:flex; flex-wrap:wrap; }
 .widget { flex:1 1 100%; min-width:280px; }
 .widget.w-33 { flex:1 1 33%; }
 .widget.w-50 { flex:1 1 50%; }
@@ -140,13 +140,13 @@ textarea { resize:vertical; }
         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
           <div><h1>Overview</h1><div class="scope">All accounts · values from latest weekly snapshot <span class="asof" id="ovasof"></span></div></div>
           <div style="display:flex; gap:6px;">
-            <button class="pill" id="wAdd" hidden>+ Add card</button>
-            <button class="pill" id="wReset" hidden>↺ Reset</button>
-            <button class="pill" id="wOrganize">⊞ Organize panels</button>
+            <button class="pill" id="wAdd-overview" hidden>+ Add card</button>
+            <button class="pill" id="wReset-overview" hidden>↺ Reset</button>
+            <button class="pill" id="wOrganize-overview">⊞ Organize panels</button>
           </div>
         </div>
       </div>
-      <div id="wGrid">
+      <div id="wGrid-overview">
         <div class="widget" data-id="accounts">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <div class="seclbl" style="margin:22px 0 8px;">Accounts</div>
@@ -173,19 +173,77 @@ textarea { resize:vertical; }
     </section>
 
     <section id="t-options" hidden>
-      <div class="pagehead"><h1>Options</h1><div class="scope">Account ••••2005 ("Options") · history from your ledger · open structures <span class="asof" id="opasof"></span></div></div>
-      <div class="seclbl">Performance</div>
-      <div class="gs" id="stats"></div>
-      <div class="seclbl">Open Structures</div>
-      <div class="card" style="margin-bottom:14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
-          <div class="sub">One row = one structure · marks as of the snapshot date above</div>
-          <span id="structviewpills"></span>
+      <div class="pagehead">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+          <div><h1>Options</h1><div class="scope">Account ••••2005 ("Options") · history from your ledger · open structures <span class="asof" id="opasof"></span></div></div>
+          <div style="display:flex; gap:6px;">
+            <button class="pill" id="wAdd-options" hidden>+ Add card</button>
+            <button class="pill" id="wReset-options" hidden>↺ Reset</button>
+            <button class="pill" id="wOrganize-options">⊞ Organize panels</button>
+          </div>
         </div>
-        <div class="tw" id="structs"></div>
-        <div class="tw" id="structsExp" hidden></div>
-        <div class="tw" id="structsUnd" hidden></div>
-        <div id="structsAna" hidden></div>
+      </div>
+      <div id="wGrid-options">
+        <div class="widget" data-id="perf">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Performance</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="gs" id="stats"></div>
+        </div>
+        <div class="widget" data-id="structs">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Open Structures</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+              <div class="sub">One row = one structure · marks as of the snapshot date above</div>
+              <span id="structviewpills"></span>
+            </div>
+            <div class="tw" id="structs"></div>
+            <div class="tw" id="structsExp" hidden></div>
+            <div class="tw" id="structsUnd" hidden></div>
+            <div id="structsAna" hidden></div>
+          </div>
+        </div>
+        <div class="widget" data-id="pl">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Realized P/L</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;"><span id="gran"></span><span style="width:8px"></span><span id="pills"></span></div>
+            </div>
+            <div class="cb"><canvas id="plchart"></canvas></div>
+          </div>
+        </div>
+        <div class="widget" data-id="cal">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Calendar</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+              <span id="calmodepills"></span>
+              <span id="calmetricpills"></span>
+              <button class="pill" id="caltoday">Today</button>
+              <button class="pill" id="calprev">‹</button><span id="callabel" style="font-size:13px; min-width:92px; text-align:center;"></span><button class="pill" id="calnext">›</button>
+            </div>
+            <div id="calendar"></div>
+          </div>
+        </div>
+        <div class="widget" data-id="closed">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Closed Trades</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span class="sub">⠿ drag column headers to reorder</span><span id="ctpills"></span></div>
+            <div class="tw" id="closedopts"></div>
+          </div>
+        </div>
       </div>
       <div class="card" id="journalPanel" style="margin-bottom:14px;" hidden>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -202,60 +260,103 @@ textarea { resize:vertical; }
         <div style="margin-top:12px;"><button class="act" id="jSave">⬇ Generate updated structure_journal.csv</button></div>
         <div id="jSaveOut" style="margin-top:10px;"></div>
       </div>
-      <div class="seclbl">Realized P/L</div>
-      <div class="card" style="margin-bottom:14px;">
-        <div style="display:flex; justify-content:flex-end; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-          <div style="display:flex; gap:6px; flex-wrap:wrap;"><span id="gran"></span><span style="width:8px"></span><span id="pills"></span></div>
-        </div>
-        <div class="cb"><canvas id="plchart"></canvas></div>
-      </div>
-      <div class="card" style="margin-bottom:14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
-          <div style="font-weight:600; font-size:14px;">Calendar</div>
-          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
-            <span id="calmodepills"></span>
-            <span id="calmetricpills"></span>
-            <button class="pill" id="caltoday">Today</button>
-            <button class="pill" id="calprev">‹</button><span id="callabel" style="font-size:13px; min-width:92px; text-align:center;"></span><button class="pill" id="calnext">›</button>
-          </div>
-        </div>
-        <div id="calendar"></div>
-      </div>
-      <div class="seclbl">Closed Trades</div>
-      <div class="card" style="margin-bottom:14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span class="sub">⠿ drag column headers to reorder</span><span id="ctpills"></span></div>
-        <div class="tw" id="closedopts"></div>
-      </div>
     </section>
 
     <section id="t-stocks" hidden>
-      <div class="pagehead"><h1>Stocks</h1><div class="scope">From latest snapshot <span class="asof" id="stasof"></span></div></div>
-      <div class="seclbl">Performance</div>
-      <div class="gs" id="stkstats"></div>
-      <div class="seclbl">Holdings</div>
-      <div class="card" style="margin-bottom:14px;"><div style="font-weight:600; font-size:14px; margin-bottom:8px;">Options ••••2005</div><div class="tw" id="stk2005"></div></div>
-      <div class="card" style="margin-bottom:14px;"><div style="font-weight:600; font-size:14px; margin-bottom:8px;">Roth IRA ••••9521</div><div class="tw" id="stk9521"></div></div>
-      <div class="seclbl">Closed Trades</div>
-      <div class="card" style="margin-bottom:14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span class="sub">⠿ drag column headers to reorder</span><span id="cspills"></span></div>
-        <div class="tw" id="closedstks"></div>
+      <div class="pagehead">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+          <div><h1>Stocks</h1><div class="scope">From latest snapshot <span class="asof" id="stasof"></span></div></div>
+          <div style="display:flex; gap:6px;">
+            <button class="pill" id="wAdd-stocks" hidden>+ Add card</button>
+            <button class="pill" id="wReset-stocks" hidden>↺ Reset</button>
+            <button class="pill" id="wOrganize-stocks">⊞ Organize panels</button>
+          </div>
+        </div>
+      </div>
+      <div id="wGrid-stocks">
+        <div class="widget" data-id="perf">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Performance</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="gs" id="stkstats"></div>
+        </div>
+        <div class="widget" data-id="hold2005">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Holdings — Options ••••2005</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="card" style="margin-bottom:14px;"><div class="tw" id="stk2005"></div></div>
+        </div>
+        <div class="widget" data-id="hold9521">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Holdings — Roth IRA ••••9521</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="card" style="margin-bottom:14px;"><div class="tw" id="stk9521"></div></div>
+        </div>
+        <div class="widget" data-id="closed">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Closed Trades</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="card" style="margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;"><span class="sub">⠿ drag column headers to reorder</span><span id="cspills"></span></div>
+            <div class="tw" id="closedstks"></div>
+          </div>
+        </div>
       </div>
     </section>
 
     <section id="t-crypto" hidden>
-      <div class="pagehead"><h1>Crypto</h1><div class="scope">Account totals from latest snapshot <span class="asof" id="cryasof"></span> (per-coin not available)</div></div>
-      <div class="seclbl">Balances</div>
-      <div class="gs" id="crystats"></div>
+      <div class="pagehead">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+          <div><h1>Crypto</h1><div class="scope">Account totals from latest snapshot <span class="asof" id="cryasof"></span> (per-coin not available)</div></div>
+          <div style="display:flex; gap:6px;">
+            <button class="pill" id="wAdd-crypto" hidden>+ Add card</button>
+            <button class="pill" id="wReset-crypto" hidden>↺ Reset</button>
+            <button class="pill" id="wOrganize-crypto">⊞ Organize panels</button>
+          </div>
+        </div>
+      </div>
+      <div id="wGrid-crypto">
+        <div class="widget" data-id="balances">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="seclbl" style="margin:22px 0 8px;">Balances</div>
+            <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+          </div>
+          <div class="gs" id="crystats"></div>
+        </div>
+      </div>
     </section>
 
     <section id="t-reader" hidden>
-      <div class="pagehead"><h1>Reader</h1><div class="scope">Import your weekly Robinhood activity CSV. Parses in your browser; nothing uploaded anywhere.</div></div>
-      <div class="seclbl">Import</div>
+      <div class="pagehead">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+          <div><h1>Reader</h1><div class="scope">Import your weekly Robinhood activity CSV. Parses in your browser; nothing uploaded anywhere.</div></div>
+          <div style="display:flex; gap:6px;">
+            <button class="pill" id="wAdd-reader" hidden>+ Add card</button>
+            <button class="pill" id="wReset-reader" hidden>↺ Reset</button>
+            <button class="pill" id="wOrganize-reader">⊞ Organize panels</button>
+          </div>
+        </div>
+      </div>
+      <div id="wGrid-reader">
+      <div class="widget" data-id="import">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="seclbl" style="margin:22px 0 8px;">Import</div>
+          <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+        </div>
       <div class="card" style="margin-bottom:14px;">
         <div class="drop" id="drop">📥 Drop your Robinhood CSV here, or click to choose<input type="file" id="file" accept=".csv" style="display:none"></div>
         <div id="rdout" style="margin-top:12px;"></div>
       </div>
-      <div class="seclbl">Close a Trade</div>
+      </div>
+      <div class="widget" data-id="close">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="seclbl" style="margin:22px 0 8px;">Close a Trade</div>
+          <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+        </div>
       <div class="card" style="margin-bottom:14px;">
         <div class="sub" style="margin-bottom:10px;">Manually record a structure you already closed at the broker. Strategy, credit, and realized P/L compute live as you type. Nothing saves until you download and replace the file yourself — same as the CSV importer above.</div>
         <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-bottom:4px;">
@@ -270,7 +371,12 @@ textarea { resize:vertical; }
         <div style="margin-top:12px;"><button class="act" id="ctSave" disabled>⬇ Generate updated trades_ledger.csv</button></div>
         <div id="ctSaveOut" style="margin-top:10px;"></div>
       </div>
-      <div class="seclbl">New Option Structure</div>
+      </div>
+      <div class="widget" data-id="new">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="seclbl" style="margin:22px 0 8px;">New Option Structure</div>
+          <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+        </div>
       <div class="card" style="margin-bottom:14px;">
         <div class="sub" style="margin-bottom:10px;">Track a structure you just opened, before Friday's snapshot catches up. Shows in Open Structures tagged "manual" until the real broker snapshot has it — then it drops out automatically. Writes to a separate file, never touches your snapshots or ledger.</div>
         <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-bottom:4px;">
@@ -284,7 +390,12 @@ textarea { resize:vertical; }
         <div style="margin-top:12px;"><button class="act" id="ntSave" disabled>⬇ Generate updated manual_positions.csv</button></div>
         <div id="ntSaveOut" style="margin-top:10px;"></div>
       </div>
-      <div class="seclbl">Add Stock Position</div>
+      </div>
+      <div class="widget" data-id="addpos">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="seclbl" style="margin:22px 0 8px;">Add Stock Position</div>
+          <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+        </div>
       <div class="card" style="margin-bottom:14px;">
         <div class="sub" style="margin-bottom:10px;">Track a stock/ETF position before Friday's snapshot catches up. Shows in Holdings tagged "manual" until the real snapshot has it.</div>
         <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
@@ -298,11 +409,18 @@ textarea { resize:vertical; }
         <div style="margin-top:12px;"><button class="act" id="apSave">⬇ Generate updated manual_positions.csv</button></div>
         <div id="apSaveOut" style="margin-top:10px;"></div>
       </div>
-      <div class="seclbl">How It Works</div>
+      </div>
+      <div class="widget" data-id="howto">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="seclbl" style="margin:22px 0 8px;">How It Works</div>
+          <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+        </div>
       <div class="card"><div class="sub" style="line-height:1.7">1. Robinhood app → Account → Reports and statements → generate activity report → download CSV.<br>
         2. Drop it here. The reader pairs fills into trades (FIFO per contract), computes realized P/L, and keeps only trades AFTER your ledger's last date — no doubles, ever.<br>
         3. Review the preview → download the updated <b>trades_ledger.csv</b> → replace the file in your Drive folder <code>05_Portfolio/history/</code>. Done: the dashboard reflects it, and your files stay the source of truth.<br>
         <span style="color:var(--amber)">Rows the reader can't pair confidently are marked <b>needs_review</b> — never guessed.</span><br>Note: reader P/L is net of exchange fees (your true cash), so figures may differ from broker-reported gains by a few dollars per trade.</div>
+      </div>
+      </div>
       </div>
     </section>
   </main>
@@ -472,77 +590,82 @@ $("jSave").onclick=()=>{
     <div class="sub" style="margin-top:8px">Replace <code>05_Portfolio/history/structure_journal.csv</code> in your Drive folder with this file.</div>`;
 };
 
-// ================= OVERVIEW WIDGETS =================
-const WIDGET_DEFAULT=[{id:"accounts",width:100,visible:true},{id:"performance",width:100,visible:true},{id:"networth",width:100,visible:true}];
+// ================= PAGE WIDGETS (all tabs) =================
+const WIDGET_DEFAULTS={
+  overview:[{id:"accounts",width:100,visible:true},{id:"performance",width:100,visible:true},{id:"networth",width:100,visible:true}],
+  options:[{id:"perf",width:100,visible:true},{id:"structs",width:100,visible:true},{id:"pl",width:100,visible:true},{id:"cal",width:100,visible:true},{id:"closed",width:100,visible:true}],
+  stocks:[{id:"perf",width:100,visible:true},{id:"hold2005",width:100,visible:true},{id:"hold9521",width:100,visible:true},{id:"closed",width:100,visible:true}],
+  crypto:[{id:"balances",width:100,visible:true}],
+  reader:[{id:"import",width:100,visible:true},{id:"close",width:100,visible:true},{id:"new",width:100,visible:true},{id:"addpos",width:100,visible:true},{id:"howto",width:100,visible:true}],
+};
 const CYCLE=[33,50,67,100];
-function loadWLayout(){
-  try{ const saved=JSON.parse(localStorage.getItem("p_wlayout")); if(Array.isArray(saved)&&saved.length) return saved; }catch(e){}
-  return WIDGET_DEFAULT.map(w=>({...w}));
+let wState={};
+function loadWLayout(tab){
+  const def=WIDGET_DEFAULTS[tab];
+  try{ const saved=JSON.parse(localStorage.getItem("p_wlayout_"+tab));
+    if(Array.isArray(saved)&&saved.length===def.length&&saved.every(w=>def.some(d=>d.id===w.id))) return saved;
+  }catch(e){}
+  return def.map(w=>({...w}));
 }
-let wLayout=loadWLayout(), wEditing=false, wDragId=null;
-function saveWLayout(){ localStorage.setItem("p_wlayout", JSON.stringify(wLayout)); }
-function applyWLayout(){
-  const grid=$("wGrid");
-  for(const w of wLayout){
+function saveWLayout(tab){ localStorage.setItem("p_wlayout_"+tab, JSON.stringify(wState[tab].layout)); }
+function applyWLayout(tab){
+  const grid=$("wGrid-"+tab); if(!grid)return;
+  const st=wState[tab];
+  for(const w of st.layout){
     const el=grid.querySelector(`.widget[data-id="${w.id}"]`);
     if(!el)continue;
     grid.appendChild(el);
-    el.className="widget "+(wEditing?"editing ":"")+"w-"+w.width;
+    el.className="widget "+(st.editing?"editing ":"")+"w-"+w.width;
     el.hidden=!w.visible;
-    el.querySelector(".wctl").hidden=!wEditing;
-    el.draggable=wEditing;
+    const ctl=el.querySelector(".wctl"); if(ctl)ctl.hidden=!st.editing;
+    el.draggable=st.editing;
   }
-  $("wAdd").hidden = !wEditing || wLayout.every(w=>w.visible);
-  $("wReset").hidden = !wEditing;
+  const addBtn=$("wAdd-"+tab); if(addBtn) addBtn.hidden = !st.editing || st.layout.every(w=>w.visible);
+  const resetBtn=$("wReset-"+tab); if(resetBtn) resetBtn.hidden=!st.editing;
+  const orgBtn=$("wOrganize-"+tab);
+  if(orgBtn){ orgBtn.classList.toggle("on",st.editing); orgBtn.textContent = st.editing? "✓ Done" : "⊞ Organize panels"; }
 }
-function cycleWidth(id){
-  const w=wLayout.find(x=>x.id===id); if(!w)return;
+function cycleWidth(tab,id){
+  const w=wState[tab].layout.find(x=>x.id===id); if(!w)return;
   const i=CYCLE.indexOf(w.width); w.width=CYCLE[(i+1)%CYCLE.length];
-  saveWLayout(); applyWLayout();
+  saveWLayout(tab); applyWLayout(tab);
 }
-function toggleVisible(id,v){
-  const w=wLayout.find(x=>x.id===id); if(!w)return;
-  w.visible=v; saveWLayout(); applyWLayout();
+function toggleVisible(tab,id,v){
+  const w=wState[tab].layout.find(x=>x.id===id); if(!w)return;
+  w.visible=v; saveWLayout(tab); applyWLayout(tab);
 }
-$("wGrid").addEventListener("click", e=>{
-  const rm=e.target.closest(".wremove"); if(rm){ toggleVisible(rm.closest(".widget").dataset.id, false); return; }
-  const rs=e.target.closest(".wresize"); if(rs){ cycleWidth(rs.closest(".widget").dataset.id); return; }
-});
-$("wOrganize").onclick=()=>{
-  wEditing=!wEditing;
-  $("wOrganize").classList.toggle("on",wEditing);
-  $("wOrganize").textContent = wEditing? "✓ Done" : "⊞ Organize panels";
-  applyWLayout();
-};
-$("wAdd").onclick=()=>{
-  const hidden=wLayout.filter(w=>!w.visible);
-  if(!hidden.length)return;
-  toggleVisible(hidden[0].id, true);
-};
-$("wReset").onclick=()=>{
-  wLayout=WIDGET_DEFAULT.map(w=>({...w}));
-  saveWLayout(); applyWLayout();
-};
-$("wGrid").addEventListener("dragstart", e=>{
-  const el=e.target.closest(".widget"); if(!el||!wEditing)return;
-  wDragId=el.dataset.id; e.dataTransfer.effectAllowed="move";
-});
-$("wGrid").addEventListener("dragover", e=>{
-  if(!wEditing)return; const el=e.target.closest(".widget"); if(!el||el.dataset.id===wDragId)return;
-  e.preventDefault(); el.classList.add("dragover");
-});
-$("wGrid").addEventListener("dragleave", e=>{ const el=e.target.closest(".widget"); if(el)el.classList.remove("dragover"); });
-$("wGrid").addEventListener("drop", e=>{
-  if(!wEditing)return; const el=e.target.closest(".widget"); if(!el)return;
-  e.preventDefault(); el.classList.remove("dragover");
-  const targetId=el.dataset.id;
-  if(!wDragId||wDragId===targetId)return;
-  const fromIdx=wLayout.findIndex(w=>w.id===wDragId), toIdx=wLayout.findIndex(w=>w.id===targetId);
-  const [moved]=wLayout.splice(fromIdx,1);
-  wLayout.splice(toIdx,0,moved);
-  wDragId=null; saveWLayout(); applyWLayout();
-});
-applyWLayout();
+function initWidgets(tab){
+  wState[tab]={layout:loadWLayout(tab), editing:false, dragId:null};
+  const grid=$("wGrid-"+tab); if(!grid)return;
+  grid.addEventListener("click", e=>{
+    const rm=e.target.closest(".wremove"); if(rm){ toggleVisible(tab, rm.closest(".widget").dataset.id, false); return; }
+    const rs=e.target.closest(".wresize"); if(rs){ cycleWidth(tab, rs.closest(".widget").dataset.id); return; }
+  });
+  const orgBtn=$("wOrganize-"+tab);
+  if(orgBtn) orgBtn.onclick=()=>{ wState[tab].editing=!wState[tab].editing; applyWLayout(tab); };
+  const addBtn=$("wAdd-"+tab);
+  if(addBtn) addBtn.onclick=()=>{ const hidden=wState[tab].layout.filter(w=>!w.visible); if(hidden.length) toggleVisible(tab, hidden[0].id, true); };
+  const resetBtn=$("wReset-"+tab);
+  if(resetBtn) resetBtn.onclick=()=>{ wState[tab].layout=WIDGET_DEFAULTS[tab].map(w=>({...w})); saveWLayout(tab); applyWLayout(tab); };
+  grid.addEventListener("dragstart", e=>{ const el=e.target.closest(".widget"); if(el&&wState[tab].editing){ wState[tab].dragId=el.dataset.id; e.dataTransfer.effectAllowed="move"; } });
+  grid.addEventListener("dragover", e=>{
+    if(!wState[tab].editing)return; const el=e.target.closest(".widget"); if(!el||el.dataset.id===wState[tab].dragId)return;
+    e.preventDefault(); el.classList.add("dragover");
+  });
+  grid.addEventListener("dragleave", e=>{ const el=e.target.closest(".widget"); if(el)el.classList.remove("dragover"); });
+  grid.addEventListener("drop", e=>{
+    if(!wState[tab].editing)return; const el=e.target.closest(".widget"); if(!el)return;
+    e.preventDefault(); el.classList.remove("dragover");
+    const targetId=el.dataset.id, dragId=wState[tab].dragId;
+    if(!dragId||dragId===targetId)return;
+    const layout=wState[tab].layout;
+    const from=layout.findIndex(w=>w.id===dragId), to=layout.findIndex(w=>w.id===targetId);
+    const [moved]=layout.splice(from,1); layout.splice(to,0,moved);
+    wState[tab].dragId=null; saveWLayout(tab); applyWLayout(tab);
+  });
+  applyWLayout(tab);
+}
+["overview","options","stocks","crypto","reader"].forEach(initWidgets);
 function weekB(){const m={};for(const t of optT){const d=new Date(t.closed_at);const mo=new Date(d);mo.setDate(d.getDate()-((d.getDay()+6)%7));const k=mo.toISOString().slice(0,10);m[k]=(m[k]||0)+t.g;}return Object.keys(m).sort().map(k=>({end:k,gain:m[k],label:new Date(k).toLocaleString("en",{month:"short",day:"numeric"})}));}
 function renderChart(){
   const range=localStorage.getItem("p_range")||"YTD", gran=localStorage.getItem("p_gran")||"M";

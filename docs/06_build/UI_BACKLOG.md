@@ -43,7 +43,7 @@ Source: `audit/OpenClaw_Research_Brief_Trading_Dashboards_findings_Tortuga.md` +
 - [x] Portfolio Options sub-tabs: Expirations (positions-by-expiry with risk bar), Underlyings, Analysis (strategy-level win rate/avg P/L)
 - [x] CSV export on Closed Trades tables (Options + Stocks)
 - [x] Explicit noun consistency pass (Strategy/Leg/Position/Trade labeled consistently — e.g. Options subtitle now says "open structures" not "open positions")
-- [x] Dashboard widget customization — Overview tab only: Organize panels edit mode, drag-reorder, click-to-cycle width (33/50/67/100%), add/remove/reset, layout in `localStorage`
+- [x] Dashboard widget customization — Organize panels edit mode, drag-reorder, click-to-cycle width (33/50/67/100%), add/remove/reset, layout in `localStorage`. Shipped Overview-only 2026-07-20, then extended to **all 5 tabs** same day at Pop's request — engine generalized to be parameterized per-tab (`wState[tab]`, `p_wlayout_<tab>` keys) instead of hardcoded to Overview.
 - [x] Strategy journal — new `structure_journal.csv` (DATA_SPEC §4.7), 📝 panel per structure: thesis/tags/rating/mindset/notes, upsert by `structure_key`
 - [x] New Trade (open) + Add Stock Position manual entry — new `manual_positions.csv` (DATA_SPEC §4.6), merged into Open Structures/Holdings tagged "manual," auto-drops once the real broker snapshot catches up. "Roll" is deliberately not a separate mechanism — it's Close (M10) + New (M11) in sequence.
 - [x] Table column drag-to-reorder on Closed Trades tables (Options + Stocks), order persisted per table in `localStorage`
