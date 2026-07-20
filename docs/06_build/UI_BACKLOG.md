@@ -23,9 +23,13 @@ Source: Pop's M3 review, 2026-07-18. Every item mapped to a milestone. This file
 - [ ] Overview tab: net-worth trend from accounts_history.csv once ≥4 weeks archived
 
 ## Later / v1.1+
-- [ ] Formula tooltips on every stat card (DESIGN §7)
-- [ ] Journal notes per structure (PI pattern)
-- [ ] Custom layout / widget picker (TViz B12 — Stage 2 flagship)
+- [x] Formula tooltips on every stat card (DESIGN §7) — shipped 2026-07-20, all 20 dashboard stat cards (Overview/Options/Stocks/Crypto), hover shows formula + data source + "as of" timestamp
+- [x] Journal notes per structure (PI pattern) — shipped as part of M11's `structure_journal.csv`
+- [x] Custom layout / widget picker (TViz B12 — Stage 2 flagship) — shipped as part of M11's Overview widget system (DESIGN_SPEC §7 originally reserved this for Stage 2; superseded by the Tortuga audit + Pop's direct request)
+
+## Still open — needs a protected-file schema decision, not a build task
+- [ ] Compliance chips (🟢/🟡/🔴 rulebook tolerance zones) — blocked on `opened_at` per position, which the Robinhood connector returns but `positions_snapshots.csv` never captures. Adding it means a schema change to a protected archive file — needs the exact-diff approval per the hard rule before any code changes, not something to build unprompted.
+- [ ] "Avg time in trade" / "avg % return on risk" stat cards (deferred since M3) — same `opened_at` blocker as compliance chips.
 
 ## Tortuga Trades audit (2026-07-19)
 

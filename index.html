@@ -366,7 +366,7 @@ function economics(legs){
   for(const l of legs){ if(l.mark==null){ok=false;continue;} pl+=(l.side==="short"?(l.per-l.mark):(l.mark-l.per))*l.qty*l.mult; }
   return {cr, pl:ok?pl:null, name:detect(legs), ml:maxLoss(legs,cr), bes:breakevens(legs,cr)};
 }
-function statCard(l,v,c,s){return `<div class="card stat"><div class="lbl">${l}</div><div class="val ${s==null?"":cls(s)}">${v}</div><div class="ctx">${c||""}</div></div>`;}
+function statCard(l,v,c,s,tip){return `<div class="card stat"${tip?` title="${tip.replace(/"/g,"&quot;")}"`:""}><div class="lbl">${l}${tip?' <span style="color:var(--mut);font-size:10px;cursor:help;">ⓘ</span>':""}</div><div class="val ${s==null?"":cls(s)}">${v}</div><div class="ctx">${c||""}</div></div>`;}
 
 let chart, nwChart, monthB=[], optT=[], stkT=[], structs=[];
 let calMode=localStorage.getItem("p_calmode")||"month", calMetric=localStorage.getItem("p_calmetric")||"pl", calAnchor=new Date();
@@ -737,14 +737,14 @@ function initPills(pid,eid,list,key){
     $("structs").innerHTML=structs.length?`<table><tr><th>Strategy</th><th>Strikes</th><th>Expiry</th><th>Net premium</th><th>P/L (as-of)</th><th>Max loss</th><th>Break-even</th></tr>${rows}</table>`:'<div class="sub" style="padding:10px">No open structures in latest snapshot.</div>';
     renderStructViews();
     $("stats").innerHTML=
-      statCard("Total options P/L",fmtS(total),"realized, all-time",total)+
-      statCard("YTD",fmtS(ytd),new Date().getFullYear()+" realized",ytd)+
-      statCard("This month",fmtS(mtd),"realized",mtd)+
-      statCard("Win rate",optT.length?Math.round(100*wins.length/optT.length)+"%":"—","per closed trade",null)+
-      statCard("Avg win",wins.length?fmt(wins.reduce((s,t)=>s+t.g,0)/wins.length):"—","",1)+
-      statCard("Avg loss",losses.length?fmt(losses.reduce((s,t)=>s+t.g,0)/losses.length):"—","",-1)+
-      statCard("Open premium",fmtS(openPrem),"as of "+(lastSnap||"—"),openPrem)+
-      statCard("Open risk",fmt(openRisk),"max loss if all breach",-1);
+      statCard("Total options P/L",fmtS(total),"realized, all-time",total,"Sum of realized_gain across all closed option trades, all-time. Source: trades_ledger.csv.")+
+      statCard("YTD",fmtS(ytd),new Date().getFullYear()+" realized",ytd,`Sum of realized_gain for option trades closed since Jan 1, ${new Date().getFullYear()}. Source: trades_ledger.csv.`)+
+      statCard("This month",fmtS(mtd),"realized",mtd,"Sum of realized_gain for option trades closed this calendar month. Source: trades_ledger.csv.")+
+      statCard("Win rate",optT.length?Math.round(100*wins.length/optT.length)+"%":"—","per closed trade",null,"Closed trades with realized_gain > 0, as a % of all closed option trades. Source: trades_ledger.csv.")+
+      statCard("Avg win",wins.length?fmt(wins.reduce((s,t)=>s+t.g,0)/wins.length):"—","",1,"Average realized_gain across winning closed trades. Source: trades_ledger.csv.")+
+      statCard("Avg loss",losses.length?fmt(losses.reduce((s,t)=>s+t.g,0)/losses.length):"—","",-1,"Average realized_gain across losing closed trades. Source: trades_ledger.csv.")+
+      statCard("Open premium",fmtS(openPrem),"as of "+(lastSnap||"—"),openPrem,`Sum of net credit (short − long, ×qty×multiplier) across open structures. Source: positions_snapshots.csv, latest snapshot. As of ${lastSnap||"—"}.`)+
+      statCard("Open risk",fmt(openRisk),"max loss if all breach",-1,`Sum of max loss (payoff evaluation across candidate spot prices, not a width shortcut) across open structures, worst case. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`);
     $("pills").innerHTML=["30d","90d","6M","YTD","ALL"].map(r=>`<button class="pill" data-r="${r}">${r}</button>`).join(" ");
     $("gran").innerHTML=["W","M"].map(g=>`<button class="pill" data-g="${g}">${g==="W"?"Week":"Month"}</button>`).join(" ");
     document.querySelectorAll("#pills .pill").forEach(p=>p.onclick=()=>{localStorage.setItem("p_range",p.dataset.r);renderChart();});
@@ -763,15 +763,15 @@ function initPills(pid,eid,list,key){
     const c2005=curA.find(a=>a.account==="2005")||{}, c8817=curA.find(a=>a.account==="8817")||{}, c9521=curA.find(a=>a.account==="9521")||{};
     const cryTot=curA.reduce((s,a)=>s+(parseFloat(a.crypto_value)||0),0);
     $("ovstats").innerHTML=
-      statCard("Net worth",fmt(net),"as of "+(lastA||"—"),1)+
-      statCard("Stocks & ETFs",fmt(curA.reduce((s,a)=>s+(parseFloat(a.equity_value)||0),0)),"all accounts",null)+
-      statCard("Crypto",fmt(cryTot),"all accounts",null)+
-      statCard("Margin debit",(parseFloat(c2005.cash)||0)<0?"-"+fmt(-parseFloat(c2005.cash)):"$0","Options acct",(parseFloat(c2005.cash)||0)<0?-1:1)+
-      statCard("Buying power",fmt(parseFloat(c2005.buying_power)||0),"Options acct",null);
+      statCard("Net worth",fmt(net),"as of "+(lastA||"—"),1,`Sum of total_value across all accounts. Source: accounts_history.csv, latest snapshot. As of ${lastA||"—"}.`)+
+      statCard("Stocks & ETFs",fmt(curA.reduce((s,a)=>s+(parseFloat(a.equity_value)||0),0)),"all accounts",null,`Sum of equity_value across all accounts. Source: accounts_history.csv. As of ${lastA||"—"}.`)+
+      statCard("Crypto",fmt(cryTot),"all accounts",null,`Sum of crypto_value across all accounts. Source: accounts_history.csv. As of ${lastA||"—"}.`)+
+      statCard("Margin debit",(parseFloat(c2005.cash)||0)<0?"-"+fmt(-parseFloat(c2005.cash)):"$0","Options acct",(parseFloat(c2005.cash)||0)<0?-1:1,`cash field, Options acct (••••2005) — negative means margin owed. Source: accounts_history.csv. As of ${lastA||"—"}.`)+
+      statCard("Buying power",fmt(parseFloat(c2005.buying_power)||0),"Options acct",null,`buying_power field, Options acct (••••2005). Source: accounts_history.csv. As of ${lastA||"—"}.`);
     $("crystats").innerHTML=
-      statCard("Total crypto",fmt(cryTot),"as of "+(lastA||"—"),null)+
-      statCard("In Crypto ••••8817",fmt(parseFloat(c8817.crypto_value)||0),"",null)+
-      statCard("In Options ••••2005",fmt(parseFloat(c2005.crypto_value)||0),"staked ETH/SOL",null);
+      statCard("Total crypto",fmt(cryTot),"as of "+(lastA||"—"),null,`Sum of crypto_value across all accounts. Source: accounts_history.csv. As of ${lastA||"—"}.`)+
+      statCard("In Crypto ••••8817",fmt(parseFloat(c8817.crypto_value)||0),"",null,`crypto_value field, Crypto account (••••8817). Source: accounts_history.csv. As of ${lastA||"—"}.`)+
+      statCard("In Options ••••2005",fmt(parseFloat(c2005.crypto_value)||0),"staked ETH/SOL",null,`crypto_value field, Options account (••••2005). Source: accounts_history.csv. As of ${lastA||"—"}.`);
     // net worth trend
     const byDate={}; for(const a of accts){byDate[a.snapshot_date]=(byDate[a.snapshot_date]||0)+(parseFloat(a.total_value)||0);}
     const dts=Object.keys(byDate).sort();
@@ -803,8 +803,8 @@ function initPills(pid,eid,list,key){
     }
     const s1=stockTable("2005","stk2005"), s2=stockTable("9521","stk9521");
     $("stkstats").innerHTML=
-      statCard("Stocks value",fmt(s1.mv),"Options ••••2005",null)+statCard("Unrealized",fmtS(s1.pl),"",s1.pl)+
-      statCard("IRA value",fmt(s2.mv),"Roth IRA ••••9521",null)+statCard("IRA unrealized",fmtS(s2.pl),"",s2.pl);
+      statCard("Stocks value",fmt(s1.mv),"Options ••••2005",null,`Sum of qty × mark across stock holdings, Options acct. Source: positions_snapshots.csv, latest snapshot. As of ${lastSnap||"—"}.`)+statCard("Unrealized",fmtS(s1.pl),"",s1.pl,`Sum of (market value − cost basis) across stock holdings, Options acct. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`)+
+      statCard("IRA value",fmt(s2.mv),"Roth IRA ••••9521",null,`Sum of qty × mark across stock holdings, Roth IRA. Source: positions_snapshots.csv, latest snapshot. As of ${lastSnap||"—"}.`)+statCard("IRA unrealized",fmtS(s2.pl),"",s2.pl,`Sum of (market value − cost basis) across stock holdings, Roth IRA. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`);
     // restore tab
     const t=localStorage.getItem("p_tab")||"overview"; const btn=document.querySelector(`#tabs .tab[data-t="${t}"]`); if(btn)btn.click();
     // reader needs ledger high-water mark
