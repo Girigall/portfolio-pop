@@ -27,7 +27,7 @@
 
 **Components, deliberately decoupled (the product owes nothing to any AI runtime):**
 1. **Archive files** — plain CSV in Pop's Drive, mirrored to GitHub. THE system of record. Portable, human-readable, Excel-compatible.
-2. **Weekly collector** (Fridays after close) — the replaceable courier that appends Robinhood data to the archive and pushes to GitHub. v1 implementation: Claude scheduled task (Robinhood's official agent API authenticates through Claude). M9 implementation: local Python script + macOS cron — no AI anywhere in the loop.
+2. **Weekly collector** (Fridays after close) — the replaceable courier that appends Robinhood data to the archive and pushes to GitHub. **Split as of M9 (2026-07-20), not a single courier:** trades are Pop's own manual weekly action via the F10 Reader tab (zero AI, zero credentials, client-side only) — a real "no AI in the loop" component. Positions and account balances still go through a Claude scheduled task, because Robinhood offers no official API or CSV export for current holdings/balances (only for transaction history) — there's no clean non-AI alternative for that half. "Zero AI dependency" was revised from the original all-or-nothing framing to this split once that constraint became clear.
 3. **Dashboard clients** — pure views over the data:
    • **M8 web app (THE product):** static SPA at a URL (GitHub Pages), reads history from the GitHub repo, works in any browser/device with zero dependencies.
    • In-app preview client (temporary): retired at M8.
