@@ -27,9 +27,12 @@ Source: Pop's M3 review, 2026-07-18. Every item mapped to a milestone. This file
 - [x] Journal notes per structure (PI pattern) — shipped as part of M11's `structure_journal.csv`
 - [x] Custom layout / widget picker (TViz B12 — Stage 2 flagship) — shipped as part of M11's Overview widget system (DESIGN_SPEC §7 originally reserved this for Stage 2; superseded by the Tortuga audit + Pop's direct request)
 
-## Still open — needs a protected-file schema decision, not a build task
-- [ ] Compliance chips (🟢/🟡/🔴 rulebook tolerance zones) — blocked on `opened_at` per position, which the Robinhood connector returns but `positions_snapshots.csv` never captures. Adding it means a schema change to a protected archive file — needs the exact-diff approval per the hard rule before any code changes, not something to build unprompted.
-- [ ] "Avg time in trade" / "avg % return on risk" stat cards (deferred since M3) — same `opened_at` blocker as compliance chips.
+## Unblocked 2026-07-22 — schema shipped, UI not yet built
+`positions_snapshots.csv` gained `opened_at`/`delta`/`theta` (Pop-approved, header-only, no historical row touched — DATA_SPEC §4.2). The schema blocker is gone; these are now normal build tasks, not schema decisions:
+- [ ] Compliance chips (🟢/🟡/🔴 rulebook tolerance zones) — `opened_at` is now captured going forward. Historical weeks before 2026-07-22 are blank, so chips can only evaluate DTE-based rules on snapshots taken after this date until enough history accumulates.
+- [ ] "Avg time in trade" stat card — same forward-only caveat as compliance chips.
+- [ ] Real per-structure delta/theta display — `delta`/`theta` now captured per option leg (nullable, honest blank on illiquid legs). The Trades table previously listed this as a shipped column in error (corrected in the Tortuga comparison doc, 2026-07-22) — it can now actually be built.
+- [ ] "Avg % return on risk" stat card (deferred since M3) — separate blocker, not resolved by this schema change (needs strike-memory pairing, per TDD §8).
 
 ## Shipped (M12) — structural/visual match, not just features
 - [x] Sidebar nested expand for Options (All/Expirations/Underlyings/Analysis as indented sub-items, connecting line) — replaces the in-page pill row

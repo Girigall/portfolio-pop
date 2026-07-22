@@ -1,4 +1,4 @@
-snapshot_date,account,kind,symbol,option_id,side,qty,avg_price,strike,put_call,expiry,mark,multiplier
+snapshot_date,account,kind,symbol,option_id,side,qty,avg_price,strike,put_call,expiry,mark,multiplier,opened_at,delta,theta
 2026-07-17,2005,option_leg,SPXW,230c5a68-5614-4d01-a17f-1682a716a5b7,long,1,44.82,7430,put,2026-08-06,73.70,100
 2026-07-17,2005,option_leg,SPXW,558ed8c4-6230-43ec-97ab-9e7c198da50f,short,2,41.04,7410,put,2026-08-06,68.20,100
 2026-07-17,2005,option_leg,SPXW,e64b89a3-499b-48e8-949a-c76c00c07e44,long,1,33.11,7360,put,2026-08-06,56.30,100

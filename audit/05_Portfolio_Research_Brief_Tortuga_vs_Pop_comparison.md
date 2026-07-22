@@ -95,7 +95,7 @@ Two portfolios tracking Pop's options and stock trading — one built from scrat
 | **Column customization** | Drag-to-reorder headers, persisted per table in localStorage | Organize columns, download to CSV |
 | **Filters** | Status (All/Open/Closed), date range pills | Date period dropdown, All/Open/Closed pills, ticker/type/strategy filters |
 | **Pagination** | Client-side via Grid.js | 25/50/100 rows per page |
-| **Compliance chips** | Not shipped — blocked on an `opened_at` column in `positions_snapshots.csv` (protected-file schema change, needs Pop's exact-diff approval). Logged in `UI_BACKLOG.md`, not built. | None |
+| **Compliance chips** | Not shipped. Schema was blocked on `opened_at`; that's now resolved (`positions_snapshots.csv` gained `opened_at`/`delta`/`theta`, 2026-07-22). Chip UI itself still not built. | None |
 | **Max loss column** | Always present — payoff-function computed, not width-minus-credit | Not a first-class column in Trades view |
 
 **Winner:** Pop's Portfolio — richer columns (max loss, breakevens), max loss computed correctly. (Compliance chips and delta/theta are planned, not yet shipped — see Gaps.)
@@ -159,7 +159,7 @@ Two portfolios tracking Pop's options and stock trading — one built from scrat
 | **Strategy journal** | Structure journal CSV — upsert by structure_key (symbol|expiry) | Journal operates at leg level — strategy context present but not elevated |
 | **Review filters** | Strategies tab: filter by rating, mindset, tags, symbol, outcome | Mindset (8 emotional labels), tags (user-created), min rating (1-5), self-assessment metrics |
 | **Pre-trade validator** | F9 is a specced workflow (TDD §5.1: screenshot → extract → confirm → validate → journal), run interactively with Claude — it is **not a UI feature of the live `index.html` app**, since that app is intentionally zero-AI. Writes to `candidates_journal.csv` when used. | None |
-| **Rule compliance** | Specced (rulebook checks exist), but not surfaced anywhere in the live app yet — no compliance chip, no violations UI. Same `opened_at` blocker as above. | Not present |
+| **Rule compliance** | Specced (rulebook checks exist), but not surfaced anywhere in the live app yet — no compliance chip, no violations UI. Schema no longer blocks this (see above); still a build task. | Not present |
 | **Thesis capture** | Captured at entry — VIX, spot, reasoning, planned exit (via F9 workflow, written to `candidates_journal.csv`) | Notes field available but leg-level |
 
 **Winner:** Pop's Portfolio — strategy-first journal is live and shipped; pre-trade validation and rule compliance exist as a workflow/spec but aren't yet a feature inside the app itself (see Gaps).
@@ -230,7 +230,7 @@ This is the single most important comparison dimension — and where Pop's Portf
 4. **User label preservation** — User's strategy name + system canonical label kept separately. Tortuga normalizes silently.
 5. **Formula transparency** — Every stat shows its formula, source, and timestamp on hover.
 6. **Pre-trade validator (workflow)** — Screenshot → extract → confirm → validate against rulebook → journal. Tortuga has no equivalent — but note this runs as an interactive Claude session, not a button inside the live app yet.
-7. **Compliance tracking (specced, not shipped)** — Rulebook checks exist conceptually; the compliance chip UI is not built (blocked on `opened_at`, see Gaps).
+7. **Compliance tracking (specced, not shipped)** — Rulebook checks exist conceptually; the compliance chip UI is not built. Schema unblocked 2026-07-22, remains a build task.
 8. **Broker-verified golden numbers** — Footer reconciliation shows per-trade sum vs broker aggregate; tortuga offers no such check.
 9. **Manual positions with auto-staleness** — Manual entries auto-drop when broker snapshot catches up. Clean separation.
 10. **Cost** — $0 vs paid subscription.
@@ -246,9 +246,9 @@ This is the single most important comparison dimension — and where Pop's Portf
 
 These are all logged in UI_BACKLOG or deferred to v1.1:
 
-- [ ] **Compliance chips** (🟢/🟡/🔴) — not built. Blocked on `opened_at` (protected-file schema change to `positions_snapshots.csv`, needs Pop's exact-diff approval).
-- [ ] **Avg time in trade stat card** — same `opened_at` blocker as above.
-- [ ] **Delta/Theta per structure** — not built, previously listed in error elsewhere in this doc (corrected 2026-07-22). No greeks are captured anywhere in the archive; would need a schema addition alongside `opened_at`.
+- [ ] **Compliance chips** (🟢/🟡/🔴) — not built. Schema unblocked 2026-07-22 (`opened_at` now captured going forward, no historical backfill). Build task, no longer a schema decision.
+- [ ] **Avg time in trade stat card** — same as above, unblocked, not yet built.
+- [ ] **Delta/Theta per structure** — not built, previously listed in error elsewhere in this doc (corrected 2026-07-22). Schema now captures `delta`/`theta` per option leg going forward; display is still a build task.
 - [ ] **F9 pre-trade validator as an in-app feature** — currently only runs as an interactive Claude workflow, not a button in the live `index.html` app. Would need a real OCR/extraction path to become a client feature, which conflicts with the app's zero-AI architecture — likely stays a workflow, not a UI feature, unless that tradeoff changes.
 - [ ] Full greeks panel (gamma/vega/rho) — v1.1, same schema dependency as delta/theta above
 - [x] Per-structure journal notes (now implemented via `structure_journal.csv` — M11 shipped)

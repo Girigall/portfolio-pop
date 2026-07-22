@@ -9,11 +9,11 @@
 ## Procedure (what the courier does)
 
 1. **Pull from Robinhood connector** (account 878912005 unless noted):
-   - `get_option_positions` nonzero → `get_option_instruments` (strikes) → `get_option_quotes` (marks)
+   - `get_option_positions` nonzero → `get_option_instruments` (strikes) → `get_option_quotes` (marks + greeks)
    - `get_equity_positions` for 878912005 and 429049521 → `get_equity_quotes` (batches ≤20)
    - `get_portfolio` for all 5 accounts (878912005, 788048817, 429049521, 882733181, 665888434)
    - Trades are **not** pulled here — Pop imports those separately via Reader. (`get_pnl_trade_history` is no longer part of this job.)
-2. **Assemble `run_data.json` in /tmp (NEVER in the repo)** (schema: see `archive_generate.py` docstring + git history example): `as_of` (ISO now), `snapshot_date` (YYYY-MM-DD), `positions[]` (option legs with strikes + stocks with last price, accounts as last-4), `accounts[]`. `trades[]` omitted (or empty) — the script no-ops that section cleanly.
+2. **Assemble `run_data.json` in /tmp (NEVER in the repo)** (schema: see `archive_generate.py` docstring + git history example): `as_of` (ISO now), `snapshot_date` (YYYY-MM-DD), `positions[]` (option legs with strikes + stocks with last price, accounts as last-4), `accounts[]`. `trades[]` omitted (or empty) — the script no-ops that section cleanly. **As of 2026-07-22:** option-leg position objects also carry `opened_at` (straight through from `get_option_positions`, already fetched — no extra call) and `delta`/`theta` (from `get_option_quotes`, nullable — write `""` when the connector returns null, never a guessed value). Stock-kind positions omit all three keys; `archive_generate.py` defaults them to `""`.
 3. **Run:** `python3 app/archive_generate.py run_data.json history/`
 4. **Verify:** rows_appended ≥ 0 per section, `failures` empty, ledger count vs previous (must not shrink — the script hard-asserts this).
 5. **On any pull failure:** run with `--fail-section <name>` so the failed section's file stays untouched and the failure is logged to `_meta.json`. NEVER write partial data.

@@ -74,8 +74,10 @@ Full account numbers are passed to tools unmasked; UI always masks to last 4.
 | vix_at_entry | decimal | `15.57` | F9 capture (legacy schema field) |
 
 ### 4.2 `positions_snapshots.csv` (weekly append)
-`snapshot_date · account · kind(stock/option_leg) · symbol/chain · option_id · side · qty · avg_price · strike · put_call · expiry · mark/last · multiplier`
+`snapshot_date · account · kind(stock/option_leg) · symbol/chain · option_id · side · qty · avg_price · strike · put_call · expiry · mark/last · multiplier · opened_at · delta · theta`
 One row per position per week. This is the strike-memory substrate.
+
+**`opened_at`/`delta`/`theta` added 2026-07-22** (Pop-approved schema diff, header-only edit — no historical row rewritten). Option-leg rows only; blank for stock rows. `opened_at` passes straight through from `get_option_positions` (already fetched, no new connector call). `delta`/`theta` come from `get_option_quotes` (nullable — illiquid legs write `""`, never estimated). Historical weeks before 2026-07-22 are blank for all three columns — additive-only, no backfill, nothing papered over. Unlocks (not yet built): compliance chips, avg-time-in-trade stat, real per-structure delta/theta display — all logged in `UI_BACKLOG.md`.
 
 ### 4.3 `accounts_history.csv` (weekly append)
 `snapshot_date · account · total_value · equity_value · options_value · crypto_value · cash · buying_power`

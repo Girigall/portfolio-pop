@@ -17,7 +17,8 @@ LEDGER_COLS = ["trade_id","closed_at","account","symbol","asset_class","quantity
                "close_price","realized_gain","strategy","strikes","expiry","source",
                "broker","thesis","vix_at_entry"]
 SNAP_COLS   = ["snapshot_date","account","kind","symbol","option_id","side","qty",
-               "avg_price","strike","put_call","expiry","mark","multiplier"]
+               "avg_price","strike","put_call","expiry","mark","multiplier",
+               "opened_at","delta","theta"]
 ACCT_COLS   = ["snapshot_date","account","total_value","equity_value","options_value",
                "crypto_value","cash","buying_power"]
 INDEX_UNDERLYINGS = {"SPX","SPXW","XSP","NDX","RUT","VIX"}
