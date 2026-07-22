@@ -27,11 +27,12 @@ Source: Pop's M3 review, 2026-07-18. Every item mapped to a milestone. This file
 - [x] Journal notes per structure (PI pattern) — shipped as part of M11's `structure_journal.csv`
 - [x] Custom layout / widget picker (TViz B12 — Stage 2 flagship) — shipped as part of M11's Overview widget system (DESIGN_SPEC §7 originally reserved this for Stage 2; superseded by the Tortuga audit + Pop's direct request)
 
-## Unblocked 2026-07-22 — schema shipped, UI not yet built
-`positions_snapshots.csv` gained `opened_at`/`delta`/`theta` (Pop-approved, header-only, no historical row touched — DATA_SPEC §4.2). The schema blocker is gone; these are now normal build tasks, not schema decisions:
-- [ ] Compliance chips (🟢/🟡/🔴 rulebook tolerance zones) — `opened_at` is now captured going forward. Historical weeks before 2026-07-22 are blank, so chips can only evaluate DTE-based rules on snapshots taken after this date until enough history accumulates.
-- [ ] "Avg time in trade" stat card — same forward-only caveat as compliance chips.
-- [ ] Real per-structure delta/theta display — `delta`/`theta` now captured per option leg (nullable, honest blank on illiquid legs). The Trades table previously listed this as a shipped column in error (corrected in the Tortuga comparison doc, 2026-07-22) — it can now actually be built.
+## Shipped 2026-07-22 — using the opened_at/delta/theta schema addition
+- [x] "Avg time in trade" stat card (Portfolio → Options → Performance) — matches closed `trades_ledger.csv` rows to their earliest tracked `opened_at` across all historical `positions_snapshots.csv` weeks (by symbol+expiry+strike), averages days open. Shows "not enough tracked history yet" honestly (real state today — no row has `opened_at` populated before 2026-07-22). Logic verified correct against synthetic data (11.5-day match on a fabricated 2-leg PCS).
+- [x] Real per-structure Net Δ / Net Θ columns (Portfolio → Options → Open Structures) — sign-adjusted sum of per-leg delta/theta × qty (short inverts sign). Shows "n/a" for the whole structure if any leg's greek is missing, matching the existing P/L never-partial-sum discipline (TDD §6). Replaces the earlier erroneous claim that this was already built (corrected in the Tortuga comparison doc). Currently "n/a" everywhere live — no snapshot has captured greeks yet.
+
+## Still open — not a schema blocker anymore, a data-completeness blocker
+- [ ] **Compliance chips (🟢/🟡/🔴 rulebook tolerance zones)** — investigated after the schema unblock. Full rulebook evaluation (STRATEGY_RULEBOOK.md S1–S4) needs VIX-at-entry and distance-from-spot-at-entry, neither of which are captured anywhere in the archive (`positions_snapshots.csv` has no VIX/spot field, and adding them would need a second schema round). DTE-at-entry and width/credit are now checkable via `opened_at`, but a chip built on a partial rule-check would visually claim "compliant" for dimensions never actually evaluated — that's worse than no chip, not better. Not building until either (a) Pop wants a narrower "DTE+width only" chip, explicitly labeled as partial, or (b) the F9 validator's `candidates_journal.csv` (which does capture VIX/spot at entry) becomes the actual data source for chips instead of `positions_snapshots.csv`.
 - [ ] "Avg % return on risk" stat card (deferred since M3) — separate blocker, not resolved by this schema change (needs strike-memory pairing, per TDD §8).
 
 ## Shipped (M12) — structural/visual match, not just features

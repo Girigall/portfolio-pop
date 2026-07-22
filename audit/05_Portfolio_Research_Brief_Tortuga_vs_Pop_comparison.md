@@ -246,9 +246,9 @@ This is the single most important comparison dimension — and where Pop's Portf
 
 These are all logged in UI_BACKLOG or deferred to v1.1:
 
-- [ ] **Compliance chips** (🟢/🟡/🔴) — not built. Schema unblocked 2026-07-22 (`opened_at` now captured going forward, no historical backfill). Build task, no longer a schema decision.
-- [ ] **Avg time in trade stat card** — same as above, unblocked, not yet built.
-- [ ] **Delta/Theta per structure** — not built, previously listed in error elsewhere in this doc (corrected 2026-07-22). Schema now captures `delta`/`theta` per option leg going forward; display is still a build task.
+- [ ] **Compliance chips** (🟢/🟡/🔴) — not built, and not just a schema gap anymore. Investigated 2026-07-22: full rulebook evaluation needs VIX-at-entry and distance-from-spot-at-entry, which aren't captured anywhere in the archive and weren't part of the approved schema diff. A chip built on a partial rule-check would falsely imply full compliance — not building until Pop wants a narrower, explicitly-partial version or the F9 validator's `candidates_journal.csv` becomes the data source instead.
+- [x] **Avg time in trade stat card** — shipped 2026-07-22 (Portfolio → Options → Performance). Matches closed trades to earliest tracked `opened_at`; correctly shows "not enough tracked history yet" today since no row has real data before this date.
+- [x] **Delta/Theta per structure** — shipped 2026-07-22 (Portfolio → Options → Open Structures, Net Δ/Net Θ columns), fixing the earlier error where this doc claimed it was already built. Sign-adjusted, never partial-sums. Shows "n/a" today — no snapshot has captured greeks yet.
 - [ ] **F9 pre-trade validator as an in-app feature** — currently only runs as an interactive Claude workflow, not a button in the live `index.html` app. Would need a real OCR/extraction path to become a client feature, which conflicts with the app's zero-AI architecture — likely stays a workflow, not a UI feature, unless that tradeoff changes.
 - [ ] Full greeks panel (gamma/vega/rho) — v1.1, same schema dependency as delta/theta above
 - [x] Per-structure journal notes (now implemented via `structure_journal.csv` — M11 shipped)

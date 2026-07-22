@@ -685,6 +685,22 @@ function economics(legs){
   for(const l of legs){ if(l.mark==null){ok=false;continue;} pl+=(l.side==="short"?(l.per-l.mark):(l.mark-l.per))*l.qty*l.mult; }
   return {cr, pl:ok?pl:null, name:detect(legs), ml:maxLoss(legs,cr), bes:breakevens(legs,cr)};
 }
+function calcAvgTimeInTrade(closedTrades,snaps){
+  let totalDays=0, matched=0;
+  for(const t of closedTrades){
+    if(!t.expiry||!t.strikes||!t.closed_at) continue;
+    const strikeNums=t.strikes.split("/").map(s=>parseFloat(s)).filter(n=>!isNaN(n));
+    if(!strikeNums.length) continue;
+    const legRows=snaps.filter(r=>r.symbol===t.symbol && r.expiry===t.expiry && r.opened_at && strikeNums.includes(parseFloat(r.strike)));
+    if(!legRows.length) continue;
+    const earliest=legRows.map(r=>r.opened_at).sort()[0];
+    const openDate=new Date(earliest), closeDate=new Date(t.closed_at);
+    if(isNaN(openDate)||isNaN(closeDate)) continue;
+    const days=(closeDate-openDate)/86400000;
+    if(days>=0){ totalDays+=days; matched++; }
+  }
+  return {avgDays: matched?totalDays/matched:null, matched};
+}
 function statCard(l,v,c,s,tip){return `<div class="card stat"${tip?` title="${tip.replace(/"/g,"&quot;")}"`:""}><div class="lbl">${l}${tip?' <span style="color:var(--mut);font-size:10px;cursor:help;">ⓘ</span>':""}</div><div class="val ${s==null?"":cls(s)}">${v}</div><div class="ctx">${c||""}</div></div>`;}
 function gaugeCard(l,id,c,tip){return `<div class="card stat"${tip?` title="${tip.replace(/"/g,"&quot;")}"`:""}><div class="lbl">${l}${tip?' <span style="color:var(--mut);font-size:10px;cursor:help;">ⓘ</span>':""}</div><div style="height:76px;position:relative;margin-top:2px;"><canvas id="${id}"></canvas></div><div class="ctx">${c||""}</div></div>`;}
 function gaugeChart(canvas,pctFill,centerLabel,good){
@@ -1166,6 +1182,7 @@ function initPills(pid,eid,list,key){
     // ---- snapshots (latest) ----
     const lastSnap = snaps.length? snaps.map(r=>r.snapshot_date).sort().pop() : null;
     const cur = snaps.filter(r=>r.snapshot_date===lastSnap);
+    const avgTime = calcAvgTimeInTrade(optT, snaps);
     ["opasof","stasof","ovasof","cryasof"].forEach(id=>{ if($(id)) $(id).textContent="as of "+(lastSnap||"—"); });
     $("asof").textContent="your data · ledger through "+(optT.concat(stkT).map(t=>t.closed_at).sort().pop()||"—").slice(0,10)+" · snapshot "+(lastSnap||"—");
     // structures — merge broker snapshot legs with manual (not-yet-synced) legs
@@ -1177,12 +1194,16 @@ function initPills(pid,eid,list,key){
     const groups={};
     for(const r of mergedLegsRows){
       const key=r.symbol+"|"+r.expiry;
-      (groups[key]=groups[key]||[]).push({side:r.side,qty:parseFloat(r.qty),per:parseFloat(r.avg_price),strike:parseFloat(r.strike),pc:r.put_call||"put",mult:parseFloat(r.multiplier)||100,mark:parseFloat(r.mark)||null,sym:r.symbol,expiry:r.expiry,manual:!!r.manual});
+      (groups[key]=groups[key]||[]).push({side:r.side,qty:parseFloat(r.qty),per:parseFloat(r.avg_price),strike:parseFloat(r.strike),pc:r.put_call||"put",mult:parseFloat(r.multiplier)||100,mark:parseFloat(r.mark)||null,sym:r.symbol,expiry:r.expiry,manual:!!r.manual,delta:r.delta===""||r.delta==null?null:parseFloat(r.delta),theta:r.theta===""||r.theta==null?null:parseFloat(r.theta)});
     }
     let openPrem=0, openRisk=0, rows="";
     structs=Object.values(groups).map(legs=>{legs.sort((a,b)=>a.strike-b.strike);
       const e=economics(legs);
-      return {legs,name:e.name,cr:e.cr,pl:e.pl,ml:e.ml,bes:e.bes,sym:legs[0].sym,expiry:legs[0].expiry,strikes:[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b),manual:legs.some(l=>l.manual),key:legs[0].sym+"|"+legs[0].expiry};
+      const sign=l=>l.side==="short"?-1:1;
+      const anyDeltaMissing=legs.some(l=>l.delta==null), anyThetaMissing=legs.some(l=>l.theta==null);
+      const netDelta=anyDeltaMissing?null:legs.reduce((s,l)=>s+sign(l)*l.qty*l.delta,0);
+      const netTheta=anyThetaMissing?null:legs.reduce((s,l)=>s+sign(l)*l.qty*l.theta,0);
+      return {legs,name:e.name,cr:e.cr,pl:e.pl,ml:e.ml,bes:e.bes,sym:legs[0].sym,expiry:legs[0].expiry,strikes:[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b),manual:legs.some(l=>l.manual),key:legs[0].sym+"|"+legs[0].expiry,netDelta,netTheta};
     }).sort((a,b)=>a.expiry.localeCompare(b.expiry));
     for(const st of structs){ openPrem+=st.cr; if(st.ml<0)openRisk+=-st.ml;
       const legsTxt=st.legs.map(l=>`${l.side==="short"?"−":"+"}${l.qty} ${l.strike}${l.pc[0].toUpperCase()}`).join("  ");
@@ -1190,8 +1211,9 @@ function initPills(pid,eid,list,key){
       rows+=`<tr><td><span class="badge ${st.name==="BWB"?"bwb":""}">${st.name}</span>${st.manual?' <span class="badge" style="background:var(--chipwarn);color:var(--chipwarnt);">manual</span>':""} <button class="jbtn" data-key="${st.key}" title="Journal" style="border:none;background:none;cursor:pointer;font-size:12px;opacity:${hasJournal?1:0.4};">📝</button><div class="legs">${legsTxt}</div></td>
         <td>${st.strikes.join(" / ")}</td><td>${st.expiry.slice(5)}</td>
         <td class="${cls(st.cr)}">${fmtS(st.cr)}</td><td class="${st.pl==null?'':cls(st.pl)}">${st.pl==null?"n/a":fmtS(st.pl)}</td>
-        <td class="neg">${st.ml<0?fmt(st.ml):"$0"}</td><td>${st.bes.join(" / ")||"—"}</td></tr>`;}
-    $("structs").innerHTML=structs.length?`<table><tr><th>Strategy</th><th>Strikes</th><th>Expiry</th><th>Net premium</th><th>P/L (as-of)</th><th>Max loss</th><th>Break-even</th></tr>${rows}</table>`:'<div class="sub" style="padding:10px">No open structures in latest snapshot.</div>';
+        <td class="neg">${st.ml<0?fmt(st.ml):"$0"}</td><td>${st.bes.join(" / ")||"—"}</td>
+        <td>${st.netDelta==null?"n/a":st.netDelta.toFixed(2)}</td><td>${st.netTheta==null?"n/a":st.netTheta.toFixed(2)}</td></tr>`;}
+    $("structs").innerHTML=structs.length?`<table><tr><th>Strategy</th><th>Strikes</th><th>Expiry</th><th>Net premium</th><th>P/L (as-of)</th><th>Max loss</th><th>Break-even</th><th title="Sum of per-leg delta × qty, sign-adjusted for short/long. n/a if any leg's delta wasn't captured in the latest snapshot.">Net Δ ⓘ</th><th title="Sum of per-leg theta × qty, sign-adjusted for short/long. n/a if any leg's theta wasn't captured in the latest snapshot.">Net Θ ⓘ</th></tr>${rows}</table>`:'<div class="sub" style="padding:10px">No open structures in latest snapshot.</div>';
     renderStructViews();
     renderTradesJournal(); renderTradesStrategies();
     const sumWins=wins.reduce((s,t)=>s+t.g,0), sumLossesAbs=Math.abs(losses.reduce((s,t)=>s+t.g,0));
@@ -1208,7 +1230,8 @@ function initPills(pid,eid,list,key){
       statCard("Avg win",wins.length?fmt(wins.reduce((s,t)=>s+t.g,0)/wins.length):"—","",1,"Average realized_gain across winning closed trades. Source: trades_ledger.csv.")+
       statCard("Avg loss",losses.length?fmt(losses.reduce((s,t)=>s+t.g,0)/losses.length):"—","",-1,"Average realized_gain across losing closed trades. Source: trades_ledger.csv.")+
       statCard("Open premium",fmtS(openPrem),"as of "+(lastSnap||"—"),openPrem,`Sum of net credit (short − long, ×qty×multiplier) across open structures. Source: positions_snapshots.csv, latest snapshot. As of ${lastSnap||"—"}.`)+
-      statCard("Open risk",fmt(openRisk),"max loss if all breach",-1,`Sum of max loss (payoff evaluation across candidate spot prices, not a width shortcut) across open structures, worst case. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`);
+      statCard("Open risk",fmt(openRisk),"max loss if all breach",-1,`Sum of max loss (payoff evaluation across candidate spot prices, not a width shortcut) across open structures, worst case. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`)+
+      statCard("Avg time in trade",avgTime.matched?avgTime.avgDays.toFixed(1)+"d":"—",avgTime.matched?`${avgTime.matched} trade(s) matched`:"not enough tracked history yet",null,"Days between the earliest positions_snapshots.csv row with a captured opened_at for a matching leg, and the trade's closed_at. opened_at was added 2026-07-22 — only trades with at least one leg snapshotted after that date can match; older trades honestly show no data rather than a guess.");
     gaugeChart($("gaugeWinRate"), winRatePct, winRatePct+"%", winRatePct>=50);
     gaugeChart($("gaugeProfitFactor"), pfPct, pfLabel, profitFactor>=1);
     $("pills").innerHTML=["30d","90d","6M","YTD","ALL"].map(r=>`<button class="pill" data-r="${r}">${r}</button>`).join(" ");
