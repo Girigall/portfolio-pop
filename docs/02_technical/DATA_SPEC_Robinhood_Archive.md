@@ -100,6 +100,15 @@ Same row shape as `positions_snapshots.csv` (4.2) plus `entered_at`/`source`, so
 
 **`risk_plan`/`close_plan` added 2026-07-22** (M14, header-only addition — file was empty of data rows at the time, zero migration risk). Free-text fields: `risk_plan` for the pre-defined stop/adjustment plan, `close_plan` for the intended take-profit/roll plan. Optional, blank by default.
 
+### 4.8 `radar_snapshot.csv` (M15, courier-managed, append-only)
+`pulled_at · symbol · price · pct_change · rsi · trend · iv · iv_rank · volume · days_to_earnings`
+
+One row per ticker per pull. Ticker universe = Pop's own Robinhood watchlist(s) (`get_watchlists`/`get_watchlist_items`), not a fixed list and not a broad market scan — every row is a symbol Pop actually chose to track. `pulled_at` is the freshness timestamp the client shows as "as of HH:MM"; there is no live connection from the browser, only a periodically-refreshed file, same trust model as every other archive file. `iv`/`iv_rank` are nullable — blank on illiquid names rather than estimated, same discipline as `positions_snapshots.csv`'s greeks.
+
+**Deliberately not in v1:** term structure, skew, VRP, bid-ask spread%. These need option-chain data across multiple expiries per ticker and real quant design/validation before they're trustworthy on a screen meant to inform real trades — not something to ship guessed. Logged as a fast-follow in `UI_BACKLOG.md`, not silently dropped.
+
+**Known gap as of 2026-07-23:** file is header-only. The courier mechanism for this file (a new, more-frequent scheduled task, separate from the Friday archive job) has not been created yet — creating a recurring automated job is its own explicit step requiring Pop's direct confirmation, not implied by approving the schema. The Robinhood MCP connector was also disconnected in the session this schema was designed, so the first live pull's exact field mapping is unverified — check `get_scanner_filter_specs`/`run_scan`'s actual output shape before the first real run, since Robinhood's own connector may already compute some of these values (reuse them rather than re-derive, same as `get_realized_pnl` is used as the golden P/L number instead of hand-summing trades).
+
 ## 5. Format standards (all files & UI)
 
 - Dates: ISO 8601 in files; `M/D/YYYY` in UI (per Design Spec)

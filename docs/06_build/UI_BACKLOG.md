@@ -80,6 +80,15 @@ Pop agreed with the audit's "feels incomplete" critique and asked to close the g
 - [x] Trades → Journal: leg detail shown in the journal panel, new risk-plan/close-roll-plan fields (`structure_journal.csv` header addition — file was empty of data rows, zero migration risk), Tags + Thesis snippet added to the list view.
 - [x] Trades → Strategies: reworked from journal-only (always empty until you journal something) to a real search over every closed trade, journal fields as optional overlay filters. Added Result (win/loss) and Period filters Tortuga has that we were missing; added P&L and Date columns to the result table.
 
+## Shipped (M15) — Radar, dropped Lab/Calculator
+Pop saw `C58_tortuga_sidebar_market_lab_radar.png` and said drop Lab, drop Calculator (was real/working, removed anyway per explicit instruction), Super Investors was never built (non-issue), but build Radar for real. Option Strategy collapsed to a flat top-level "Radar" tab (only one sub-item left, no reason to keep a sidebar expand group for it).
+- [x] `history/radar_snapshot.csv` schema (DATA_SPEC §4.8) — header-only, courier-managed, ticker universe = Pop's own Robinhood watchlist(s), not a fixed list or a broad scan.
+- [x] Radar UI: freshness label, symbol/trend/IV-rank filters, table, honest "waiting on first data pull" empty state.
+- [x] Rulebook-fit matcher — **scope finding during build:** `STRATEGY_RULEBOOK.md`'s S1-S4 chapters are all SPX/SPXW-specific and need option-chain/expiry data a ticker-level scan doesn't have. Only the VIX-tier regime band (S2-S4 share one table) is honestly checkable from Radar's columns. Non-index tickers correctly show "No rulebook coverage" rather than a forced match — this is accurate given the rulebook's real scope, not a shortcut.
+- [ ] **Not shipped — the actual data pipeline.** The scheduled task that would pull watchlist data into `radar_snapshot.csv` was not created: (a) creating a recurring automated job is its own explicit step needing Pop's direct go-ahead, not implied by approving the feature plan, and (b) the Robinhood MCP connector was disconnected for the entire session this was built in, so nothing live could be tested anyway. First step whenever a future session has the connector: inspect `get_scanner_filter_specs`/`run_scan`'s actual output — Robinhood's own connector may already compute RSI/IV-rank, which should be reused rather than hand-derived.
+- [ ] Term structure, skew, VRP, bid-ask spread% — deliberately deferred, need option-chain data across multiple expiries and real quant validation before showing up on a screen meant to inform real trades.
+- [ ] "Changes since yesterday" feed — needs ≥2 real pulls to diff against, trivial once the pipeline exists.
+
 ## Design principles confirmed by Pop
 - Dark mode matters (eye strain) — default dark, toggle to light
 - No purple; palette = green profit / red loss / steel blue accent / neutral grays

@@ -162,14 +162,7 @@ textarea { resize:vertical; }
           <button class="subitem" data-grp="portfolio" data-v="crypto">Crypto</button>
         </div>
       </div>
-      <div class="navgroup">
-        <button class="tab" data-t="optstrat" data-grp="optstrat"><span class="ic">⌖</span>Option Strategy<span class="chev">›</span></button>
-        <div class="navsub" id="navsub-optstrat" hidden>
-          <button class="subitem on" data-grp="optstrat" data-v="lab">Lab</button>
-          <button class="subitem" data-grp="optstrat" data-v="calculator">Calculator</button>
-          <button class="subitem" data-grp="optstrat" data-v="radar">Radar</button>
-        </div>
-      </div>
+      <button class="tab" data-t="radar"><span class="ic">📡</span>Radar</button>
       <button class="tab" data-t="reader"><span class="ic">⇩</span>Reader</button>
       <button class="tab" data-t="settings"><span class="ic">⚙</span>Settings</button>
     </nav>
@@ -478,24 +471,18 @@ textarea { resize:vertical; }
       </div>
     </section>
 
-    <section id="t-optstrat" hidden>
-      <div class="pagehead"><h1>Option Strategy</h1><div class="scope">Tools for building and checking structures before you trade them</div></div>
-
-      <div id="optstrat-lab">
-        <div class="card placeholder"><div class="big">🧪</div><b>Lab isn't built yet</b><div class="sub" style="margin-top:6px;">A full strategy builder (drag strikes, see live payoff diagrams) is a bigger build than this pass covers. Calculator (next tab) already gives you detected-strategy + max-loss + breakeven math for any legs you type in.</div></div>
-      </div>
-      <div id="optstrat-calculator" hidden>
-        <div class="card">
-          <div class="sub" style="margin-bottom:10px;">What-if tool — enter any legs and see the math instantly. Nothing saves, nothing is written anywhere.</div>
-          <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-bottom:4px;">
-            <div><label class="flbl">Legs</label><div id="calcLegBtns"></div></div>
+    <section id="t-radar" hidden>
+      <div class="pagehead"><h1>Radar</h1><div class="scope">Market scan across your Robinhood watchlist(s), checked against your rulebook</div></div>
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+          <span class="asof" id="radarAsOf"></span>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <input type="text" id="radarSymbol" placeholder="Search symbol" style="width:140px; text-transform:uppercase;">
+            <select id="radarTrend" style="width:120px;"><option value="">Any trend</option><option value="up">Up</option><option value="down">Down</option></select>
+            <select id="radarMinIvr" style="width:130px;"><option value="0">Any IV rank</option><option value="25">IV rank 25+</option><option value="50">IV rank 50+</option><option value="75">IV rank 75+</option></select>
           </div>
-          <div id="calcLegs" style="margin-top:10px;"></div>
-          <div id="calcPreview" style="margin-top:12px;"></div>
         </div>
-      </div>
-      <div id="optstrat-radar" hidden>
-        <div class="card placeholder"><div class="big">📡</div><b>Radar isn't built yet</b><div class="sub" style="margin-top:6px;">A scanner over your positions/watchlist for setups matching your rulebook. Not built in this pass.</div></div>
+        <div class="tw" id="radarTable"></div>
       </div>
     </section>
 
@@ -671,16 +658,14 @@ function applyTheme(t){ document.documentElement.setAttribute("data-theme",t); $
 $("modebtn").onclick=()=>applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");
 
 // ================= NAVIGATION (top-level tabs + sidebar-nested groups) =================
-const TOP_TABS = ["overview","trades","calendar","portfolio","optstrat","reader","settings"];
+const TOP_TABS = ["overview","trades","calendar","portfolio","radar","reader","settings"];
 const NAV_GROUPS = {
   trades: ["overview","journal","strategies"],
   portfolio: ["overview","options","stocks","etfs","dividends","crypto"],
-  optstrat: ["lab","calculator","radar"],
 };
 let subView = {
   trades: localStorage.getItem("p_trades_v")||"overview",
   portfolio: localStorage.getItem("p_portfolio_v")||"overview",
-  optstrat: localStorage.getItem("p_optstrat_v")||"lab",
 };
 function applySubViewVisibility(grp){
   NAV_GROUPS[grp].forEach(v=>{ const el=$(grp+"-"+v); if(el) el.hidden = v!==subView[grp]; });
@@ -927,6 +912,55 @@ function renderTradesStrategies(){
 }
 ["tsResult","tsPeriod","tsRating","tsMindset","tsSymbol","tsTags"].forEach(id=>$(id).addEventListener("input",renderTradesStrategies));
 
+// ================= RADAR =================
+// Rulebook coverage is intentionally narrow: STRATEGY_RULEBOOK.md's S1-S4 chapters are all
+// SPX/SPXW-specific (index structures), and their numeric criteria (DTE, short delta, distance
+// from spot, credit/width) need an option chain + a chosen expiry, which a ticker-level scan
+// doesn't have. The one thing genuinely checkable from radar_snapshot.csv's columns is the
+// VIX-tier regime band S2-S4 share (same table, all three chapters). Everything else honestly
+// shows "no rulebook coverage" rather than forcing a match.
+function matchRadarStrategy(row,allRows){
+  if(!IDX.has(row.symbol)) return {label:"No rulebook coverage",detail:"STRATEGY_RULEBOOK.md's chapters are scoped to SPX/SPXW index structures — doesn't cover individual tickers yet."};
+  const vixRow=allRows.find(r=>r.symbol==="VIX");
+  const vix=vixRow?parseFloat(vixRow.price):NaN;
+  if(isNaN(vix)) return {label:"No VIX data",detail:"Add VIX to your Robinhood watchlist to see regime fit against S2-S4's VIX bands."};
+  if(vix<15) return {label:"VIX low — avoid/reduce",detail:`VIX ${vix.toFixed(1)}: below 15. S2-S4 say avoid or reduce size.`};
+  if(vix<20) return {label:"VIX acceptable",detail:`VIX ${vix.toFixed(1)}: 15-20 band. S2-S4 say acceptable.`};
+  if(vix<30) return {label:"VIX ideal",detail:`VIX ${vix.toFixed(1)}: 20-30 band. S2-S4 say ideal.`};
+  return {label:"VIX post-panic — size down",detail:`VIX ${vix.toFixed(1)}: above 30. S2-S4 say post-panic, trade smaller.`};
+}
+function renderRadar(){
+  const rows=window._radarRaw||[];
+  if(!rows.length){
+    $("radarAsOf").textContent="no data yet";
+    $("radarTable").innerHTML='<div class="sub" style="padding:14px;">Waiting on the first data pull. Radar reads from <code>history/radar_snapshot.csv</code>, refreshed by a separate scheduled task — not yet turned on. See DATA_SPEC §4.8 for status.</div>';
+    return;
+  }
+  const latestPulled=rows.map(r=>r.pulled_at).sort().pop();
+  const latest=rows.filter(r=>r.pulled_at===latestPulled);
+  $("radarAsOf").textContent="as of "+new Date(latestPulled).toLocaleString();
+  const symQ=($("radarSymbol")?.value||"").toUpperCase().trim(), trendF=$("radarTrend")?.value||"", minIvr=+($("radarMinIvr")?.value||0);
+  const filtered=latest.filter(r=>{
+    if(symQ && !r.symbol.toUpperCase().includes(symQ)) return false;
+    if(trendF && r.trend!==trendF) return false;
+    if(minIvr && (parseFloat(r.iv_rank)||0)<minIvr) return false;
+    return true;
+  }).sort((a,b)=>(parseFloat(b.iv_rank)||0)-(parseFloat(a.iv_rank)||0));
+  if(!filtered.length){ $("radarTable").innerHTML='<div class="sub" style="padding:14px;">No tickers match these filters.</div>'; return; }
+  $("radarTable").innerHTML=`<table><tr><th>Symbol</th><th>Price</th><th>% chg</th><th>RSI</th><th>Trend</th><th>IV</th><th>IV Rank</th><th>Volume</th><th>Earnings</th><th>Rulebook fit</th></tr>${
+    filtered.map(r=>{
+      const m=matchRadarStrategy(r,latest), pct=parseFloat(r.pct_change), iv=parseFloat(r.iv);
+      return `<tr><td><b>${r.symbol}</b></td><td>${r.price?fmt(parseFloat(r.price)):"—"}</td>
+        <td class="${isNaN(pct)?"":cls(pct)}">${isNaN(pct)?"—":(pct>=0?"+":"")+pct.toFixed(1)+"%"}</td>
+        <td>${r.rsi||"—"}</td><td>${r.trend||"—"}</td>
+        <td>${isNaN(iv)?"n/a":iv.toFixed(1)+"%"}</td><td>${r.iv_rank||"n/a"}</td>
+        <td>${r.volume||"—"}</td><td>${r.days_to_earnings||"—"}</td>
+        <td title="${m.detail}">${m.label}</td></tr>`;
+    }).join("")
+  }</table>`;
+}
+["radarSymbol","radarTrend","radarMinIvr"].forEach(id=>$(id).addEventListener("input",renderRadar));
+
 // ================= PORTFOLIO OVERVIEW (allocation) =================
 function renderAllocation(curA){
   const eq=curA.reduce((s,a)=>s+(parseFloat(a.equity_value)||0),0);
@@ -999,47 +1033,6 @@ function renderTopHoldings(cur,manualRaw){
     rows.map(r=>`<tr><td>${r.sym}</td><td>${r.acct}</td><td>${fmt(r.mv)}</td><td class="${r.plp==null?"":cls(r.plp)}">${r.plp==null?"—":(r.plp>=0?"+":"")+r.plp.toFixed(1)+"%"}</td></tr>`).join("")
   }</table>`;
 }
-
-// ================= OPTION STRATEGY: CALCULATOR =================
-let calcLegN=1;
-function renderCalcLegBtns(){
-  $("calcLegBtns").innerHTML=[1,2,3,4].map(n=>`<button class="pill ${n===calcLegN?"on":""}" data-n="${n}">${n}</button>`).join(" ");
-  $("calcLegBtns").querySelectorAll(".pill").forEach(b=>b.onclick=()=>{calcLegN=+b.dataset.n; renderCalcLegBtns(); renderCalcLegRows();});
-}
-function renderCalcLegRows(){
-  let h="";
-  for(let i=0;i<calcLegN;i++){
-    h+=`<div class="legrow">
-      <div><label class="flbl">Type</label><select class="calc-type"><option value="put">Put</option><option value="call">Call</option></select></div>
-      <div><label class="flbl">Position</label><select class="calc-side"><option value="short">Short</option><option value="long">Long</option></select></div>
-      <div><label class="flbl">Strike</label><input type="number" class="calc-strike" step="0.5" placeholder="5500"></div>
-      <div><label class="flbl">Qty</label><input type="number" class="calc-qty" step="1" value="1"></div>
-      <div><label class="flbl">Price/ct</label><input type="number" class="calc-price" step="0.01" placeholder="2.20"></div>
-    </div>`;
-  }
-  $("calcLegs").innerHTML=h;
-  $("calcLegs").querySelectorAll("input,select").forEach(el=>el.oninput=renderCalcPreview);
-  renderCalcPreview();
-}
-function renderCalcPreview(){
-  const types=[...document.querySelectorAll(".calc-type")], sides=[...document.querySelectorAll(".calc-side")],
-    strikes=[...document.querySelectorAll(".calc-strike")], qtys=[...document.querySelectorAll(".calc-qty")], prices=[...document.querySelectorAll(".calc-price")];
-  const legs=[];
-  for(let i=0;i<types.length;i++){
-    const strike=parseFloat(strikes[i].value), qty=parseFloat(qtys[i].value), price=parseFloat(prices[i].value);
-    if(!strike||!qty||isNaN(price)){ $("calcPreview").innerHTML='<div class="sub">Fill in every leg to see the preview.</div>'; return; }
-    legs.push({pc:types[i].value, side:sides[i].value, strike, qty, per:price, mark:null, mult:100});
-  }
-  const e=economics(legs);
-  const strikesTxt=[...new Set(legs.map(l=>l.strike))].sort((a,b)=>a-b).join("/");
-  $("calcPreview").innerHTML=`<div class="gs" style="margin-bottom:0;">
-    ${statCard("Detected strategy",e.name,strikesTxt,null)}
-    ${statCard("Net credit/debit",fmtS(Math.round(e.cr)),"at these prices",e.cr)}
-    ${statCard("Max loss",e.ml<0?fmt(e.ml):"$0","worst case",-1)}
-    ${statCard("Break-even",e.bes.join(" / ")||"—","",null)}
-  </div>`;
-}
-renderCalcLegBtns(); renderCalcLegRows();
 
 // ================= PAGE WIDGETS =================
 const WIDGET_DEFAULTS={
@@ -1286,12 +1279,14 @@ function initPills(pid,eid,list,key){
   applyTheme(localStorage.getItem("p_theme")||"dark");
   renderAccentSwatches();
   try {
-    const [ledger, snaps, accts, manualRaw, journalRaw] = await Promise.all([
+    const [ledger, snaps, accts, manualRaw, journalRaw, radarRaw] = await Promise.all([
       loadCSV("history/trades_ledger.csv"), loadCSV("history/positions_snapshots.csv"), loadCSV("history/accounts_history.csv"),
-      loadCSVSafe("history/manual_positions.csv"), loadCSVSafe("history/structure_journal.csv")]);
+      loadCSVSafe("history/manual_positions.csv"), loadCSVSafe("history/structure_journal.csv"), loadCSVSafe("history/radar_snapshot.csv")]);
     window._manualRaw = manualRaw;
     window._journalRaw = journalRaw;
     window._journalMap = Object.fromEntries(journalRaw.map(r=>[r.structure_key,r]));
+    window._radarRaw = radarRaw;
+    renderRadar();
     // ---- ledger analytics ----
     const trades = ledger.map(r=>({...r, g:parseFloat(r.realized_gain)||0, qty:parseFloat(r.quantity)||0}));
     optT = trades.filter(t=>t.asset_class==="option");
@@ -1426,7 +1421,8 @@ function initPills(pid,eid,list,key){
       statCard("Stocks value",fmt(s1.mv),"Options ••••2005",null,`Sum of qty × mark across stock holdings, Options acct. Source: positions_snapshots.csv, latest snapshot. As of ${lastSnap||"—"}.`)+statCard("Unrealized",fmtS(s1.pl),"",s1.pl,`Sum of (market value − cost basis) across stock holdings, Options acct. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`)+
       statCard("IRA value",fmt(s2.mv),"Roth IRA ••••9521",null,`Sum of qty × mark across stock holdings, Roth IRA. Source: positions_snapshots.csv, latest snapshot. As of ${lastSnap||"—"}.`)+statCard("IRA unrealized",fmtS(s2.pl),"",s2.pl,`Sum of (market value − cost basis) across stock holdings, Roth IRA. Source: positions_snapshots.csv. As of ${lastSnap||"—"}.`);
     // restore tab
-    const initTab = localStorage.getItem("p_tab")||"overview";
+    const savedTab = localStorage.getItem("p_tab");
+    const initTab = TOP_TABS.includes(savedTab) ? savedTab : "overview";
     if(NAV_GROUPS[initTab]) showSubView(initTab, subView[initTab]); else showTopTab(initTab);
     // reader needs ledger high-water mark
     window._hwm = trades.map(t=>t.closed_at).sort().pop() || "1970-01-01";
