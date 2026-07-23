@@ -94,9 +94,11 @@ One row per position per week. This is the strike-memory substrate.
 Same row shape as `positions_snapshots.csv` (4.2) plus `entered_at`/`source`, so both feed the same render logic. Purpose: track a structure or stock position opened at the broker before the next weekly snapshot catches up — never touches `positions_snapshots.csv` itself. Merge rule (client-side, in `index.html`): a manual row is dropped from the rendered view once a real snapshot row exists with the same `symbol+strike+expiry+side` (options) or `symbol+account` (stocks) — the broker snapshot "catching up" retires it automatically. Written via the app's Reader tab (New Option Structure / Add Stock Position forms), download-and-replace like every other write path — nothing auto-commits.
 
 ### 4.7 `structure_journal.csv` (M11, client-managed, upsert by key)
-`structure_key · created_at · updated_at · thesis · tags · rating(1-5) · mindset · notes`
+`structure_key · created_at · updated_at · thesis · tags · rating(1-5) · mindset · notes · risk_plan · close_plan`
 
 `structure_key` = `symbol|expiry`, matching the same grouping key the Open Structures table already uses (TDD §4 known limitation: two structures sharing symbol+expiry merge into one — journal entries inherit that same limitation). One row per structure, upserted (not appended) — editing an existing entry replaces its row rather than adding a new one, since a structure has one current journal state, not a history of edits. Written via the 📝 toggle on each Open Structures row.
+
+**`risk_plan`/`close_plan` added 2026-07-22** (M14, header-only addition — file was empty of data rows at the time, zero migration risk). Free-text fields: `risk_plan` for the pre-defined stop/adjustment plan, `close_plan` for the intended take-profit/roll plan. Optional, blank by default.
 
 ## 5. Format standards (all files & UI)
 

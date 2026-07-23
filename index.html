@@ -274,10 +274,12 @@ textarea { resize:vertical; }
       </div>
 
       <div id="trades-strategies" hidden>
-        <div class="seclbl" style="margin-top:14px;">Strategies — journal search</div>
+        <div class="seclbl" style="margin-top:14px;">Strategies — search &amp; review</div>
         <div class="card">
-          <div class="sub" style="margin-bottom:10px;">Filter your journaled structures by rating, mindset, symbol, or tags.</div>
+          <div class="sub" style="margin-bottom:10px;">Every closed trade, journaled or not. Rating/mindset/tags filters only apply to trades you've journaled.</div>
           <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-bottom:10px;">
+            <div><label class="flbl">Result</label><select id="tsResult"><option value="">All</option><option value="win">Winners</option><option value="loss">Losers</option></select></div>
+            <div><label class="flbl">Period</label><select id="tsPeriod"><option value="ALL">All time</option><option value="30d">30d</option><option value="90d">90d</option><option value="6M">6M</option><option value="YTD">YTD</option></select></div>
             <div><label class="flbl">Min rating</label><select id="tsRating"><option value="0">Any</option><option value="1">★+</option><option value="2">★★+</option><option value="3">★★★+</option><option value="4">★★★★+</option><option value="5">★★★★★</option></select></div>
             <div><label class="flbl">Mindset</label><select id="tsMindset"><option value="">Any</option><option>Happy</option><option>Neutral</option><option>Anxious</option><option>Excited</option><option>Fearful</option><option>Bored</option></select></div>
             <div><label class="flbl">Symbol</label><input type="text" id="tsSymbol" placeholder="SPXW" style="text-transform:uppercase;"></div>
@@ -292,12 +294,15 @@ textarea { resize:vertical; }
           <div style="font-weight:600; font-size:14px;">Journal — <span id="jTitle"></span></div>
           <button class="pill" id="jClose">✕ Close</button>
         </div>
+        <div class="legs" id="jLegs" style="margin-bottom:8px;"></div>
         <div class="ga" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); margin-bottom:4px;">
           <div><label class="flbl">Rating</label><select id="jRating"><option value="">—</option><option value="1">★☆☆☆☆</option><option value="2">★★☆☆☆</option><option value="3">★★★☆☆</option><option value="4">★★★★☆</option><option value="5">★★★★★</option></select></div>
           <div><label class="flbl">Mindset</label><select id="jMindset"><option value="">—</option><option>Happy</option><option>Neutral</option><option>Anxious</option><option>Excited</option><option>Fearful</option><option>Bored</option></select></div>
           <div><label class="flbl">Tags</label><input type="text" id="jTags" placeholder="earnings-play, high-iv"></div>
         </div>
         <div style="margin-top:4px;"><label class="flbl">Thesis</label><textarea id="jThesis" rows="2" placeholder="Why you took this trade"></textarea></div>
+        <div style="margin-top:8px;"><label class="flbl">Risk plan</label><textarea id="jRiskPlan" rows="2" placeholder="Stop-loss / adjustment triggers"></textarea></div>
+        <div style="margin-top:8px;"><label class="flbl">Close/roll plan</label><textarea id="jClosePlan" rows="2" placeholder="Target profit take, roll conditions"></textarea></div>
         <div style="margin-top:8px;"><label class="flbl">Notes</label><textarea id="jNotes" rows="2" placeholder="Ongoing notes, adjustments, what you'd do differently"></textarea></div>
         <div style="margin-top:12px;"><button class="act" id="jSave">⬇ Generate updated structure_journal.csv</button></div>
         <div id="jSaveOut" style="margin-top:10px;"></div>
@@ -335,9 +340,51 @@ textarea { resize:vertical; }
       <div class="pagehead"><h1>Portfolio</h1><div class="scope">Current holdings — what you have, not what you did</div></div>
 
       <div id="portfolio-overview">
-        <div class="seclbl" style="margin-top:14px;">Allocation</div>
-        <div class="gs" id="allocStats"></div>
-        <div class="sub" id="allocNote" style="margin-top:-6px; margin-bottom:14px;"></div>
+        <div class="subhead"><span></span><div style="display:flex; gap:6px;">
+          <button class="pill" id="wAdd-portfolio-overview" hidden>+ Add card</button>
+          <button class="pill" id="wReset-portfolio-overview" hidden>↺ Reset</button>
+          <button class="pill" id="wOrganize-portfolio-overview">⊞ Organize panels</button>
+        </div></div>
+        <div id="wGrid-portfolio-overview">
+          <div class="widget" data-id="alloc">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Allocation</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="gs" id="allocStats"></div>
+            <div class="sub" id="allocNote" style="margin-top:-6px; margin-bottom:14px;"></div>
+          </div>
+          <div class="widget" data-id="tracker">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Portfolio Tracker</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="card" style="margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                <span class="sub" id="trackerChange"></span>
+                <span id="trackerPills"></span>
+              </div>
+              <div class="cb"><canvas id="trackerchart"></canvas></div>
+            </div>
+          </div>
+          <div class="widget" data-id="heatmap" style="flex-basis:67%;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Holdings Heatmap — Stocks & ETFs</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="card" style="margin-bottom:14px;">
+              <div class="sub" style="margin-bottom:8px;">P/L% by position, latest snapshot. Crypto excluded — Robinhood doesn't expose per-coin cost basis.</div>
+              <div id="heatmapGrid"></div>
+            </div>
+          </div>
+          <div class="widget" data-id="topholdings">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="seclbl" style="margin:22px 0 8px;">Top Holdings</div>
+              <div class="wctl" hidden>⠿ <button class="wresize" title="Cycle width">⤢</button> <button class="wremove" title="Remove">✕</button></div>
+            </div>
+            <div class="card" style="margin-bottom:14px;"><div class="tw" id="topHoldingsTable"></div></div>
+          </div>
+        </div>
       </div>
 
       <div id="portfolio-options" hidden>
@@ -794,10 +841,13 @@ function openJournal(key){
   const st=structs.find(s=>s.key===key);
   const j=window._journalMap[key]||{};
   $("jTitle").textContent = st ? `${st.sym} ${st.strikes.join("/")} · ${st.expiry}` : key;
+  $("jLegs").textContent = st ? st.legs.map(l=>`${l.side==="short"?"−":"+"}${l.qty} ${l.strike}${l.pc[0].toUpperCase()}`).join("  ") : "closed — leg detail no longer tracked";
   $("jRating").value=j.rating||"";
   $("jMindset").value=j.mindset||"";
   $("jTags").value=j.tags||"";
   $("jThesis").value=j.thesis||"";
+  $("jRiskPlan").value=j.risk_plan||"";
+  $("jClosePlan").value=j.close_plan||"";
   $("jNotes").value=j.notes||"";
   $("journalPanel").hidden=false;
   $("journalPanel").dataset.key=key;
@@ -812,11 +862,12 @@ $("jSave").onclick=()=>{
   const now=new Date().toISOString();
   const existing=window._journalMap[key];
   const row={structure_key:key, created_at:existing?existing.created_at:now, updated_at:now,
-    thesis:$("jThesis").value.trim(), tags:$("jTags").value.trim(), rating:$("jRating").value, mindset:$("jMindset").value, notes:$("jNotes").value.trim()};
+    thesis:$("jThesis").value.trim(), tags:$("jTags").value.trim(), rating:$("jRating").value, mindset:$("jMindset").value, notes:$("jNotes").value.trim(),
+    risk_plan:$("jRiskPlan").value.trim(), close_plan:$("jClosePlan").value.trim()};
   window._journalMap[key]=row;
   const others=(window._journalRaw||[]).filter(r=>r.structure_key!==key);
   const merged=others.concat([row]);
-  const cols=["structure_key","created_at","updated_at","thesis","tags","rating","mindset","notes"];
+  const cols=["structure_key","created_at","updated_at","thesis","tags","rating","mindset","notes","risk_plan","close_plan"];
   const blob=new Blob([csvify(merged,cols)],{type:"text/csv"});
   const url=URL.createObjectURL(blob);
   $("jSaveOut").innerHTML=`<a class="act" style="text-decoration:none" href="${url}" download="structure_journal.csv">⬇ Download updated structure_journal.csv</a>
@@ -833,12 +884,13 @@ function journalKeys(){
 function renderTradesJournal(){
   const keys = journalKeys();
   if(!keys.length){ $("tradesJournalList").innerHTML='<div class="sub" style="padding:10px">No open structures and nothing journaled yet.</div>'; return; }
-  let h="<table><tr><th>Structure</th><th>Status</th><th>Rating</th><th>Mindset</th><th></th></tr>";
+  let h="<table><tr><th>Structure</th><th>Status</th><th>Rating</th><th>Mindset</th><th>Tags</th><th>Thesis</th><th></th></tr>";
   for(const key of keys){
     const st=structs.find(s=>s.key===key);
     const j=window._journalMap[key];
     const label = st ? `${st.sym} ${st.strikes.join("/")} · ${st.expiry.slice(5)}` : key;
-    h+=`<tr><td>${label}</td><td>${st?"open":"closed/inactive"}</td><td>${j&&j.rating?"★".repeat(+j.rating):"—"}</td><td>${j&&j.mindset||"—"}</td>
+    const thesisSnip = j&&j.thesis ? (j.thesis.length>40?j.thesis.slice(0,40)+"…":j.thesis) : "—";
+    h+=`<tr><td>${label}</td><td>${st?"open":"closed/inactive"}</td><td>${j&&j.rating?"★".repeat(+j.rating):"—"}</td><td>${j&&j.mindset||"—"}</td><td>${j&&j.tags||"—"}</td><td>${thesisSnip}</td>
       <td><button class="pill jopen" data-key="${key}">${j?"Edit journal":"Add journal"}</button></td></tr>`;
   }
   h+="</table>";
@@ -846,21 +898,34 @@ function renderTradesJournal(){
   document.querySelectorAll("#tradesJournalList .jopen").forEach(b=>b.onclick=()=>{ showSubView("trades","journal"); openJournal(b.dataset.key); });
 }
 function renderTradesStrategies(){
-  const minRating=+($("tsRating")?.value||0), mindset=$("tsMindset")?.value||"", symQ=($("tsSymbol")?.value||"").toUpperCase().trim(), tagQ=($("tsTags")?.value||"").toLowerCase().trim();
-  const rows=Object.values(window._journalMap||{}).filter(j=>{
-    if(minRating && (+j.rating||0)<minRating) return false;
-    if(mindset && j.mindset!==mindset) return false;
-    if(symQ && !j.structure_key.toUpperCase().includes(symQ)) return false;
-    if(tagQ && !(j.tags||"").toLowerCase().includes(tagQ)) return false;
+  const result=$("tsResult")?.value||"", period=$("tsPeriod")?.value||"ALL",
+    minRating=+($("tsRating")?.value||0), mindset=$("tsMindset")?.value||"",
+    symQ=($("tsSymbol")?.value||"").toUpperCase().trim(), tagQ=($("tsTags")?.value||"").toLowerCase().trim();
+  const now=new Date(); let cut=null;
+  if(period==="30d")cut=new Date(now-30*864e5); if(period==="90d")cut=new Date(now-90*864e5);
+  if(period==="6M")cut=new Date(now-183*864e5); if(period==="YTD")cut=new Date(now.getFullYear(),0,1);
+  const rows=optT.filter(t=>{
+    if(cut && new Date(t.closed_at)<cut) return false;
+    if(result==="win" && !(t.g>0)) return false;
+    if(result==="loss" && !(t.g<0)) return false;
+    if(symQ && !t.symbol.toUpperCase().includes(symQ)) return false;
+    const j=window._journalMap[t.symbol+"|"+t.expiry];
+    if(minRating && (+((j&&j.rating)||0))<minRating) return false;
+    if(mindset && (!j||j.mindset!==mindset)) return false;
+    if(tagQ && !((j&&j.tags)||"").toLowerCase().includes(tagQ)) return false;
     return true;
-  });
-  if(!rows.length){ $("tradesStrategiesList").innerHTML='<div class="sub" style="padding:10px">No journaled structures match these filters.</div>'; return; }
-  let h="<table><tr><th>Structure</th><th>Rating</th><th>Mindset</th><th>Tags</th><th>Thesis</th></tr>";
-  for(const j of rows) h+=`<tr><td>${j.structure_key}</td><td>${j.rating?"★".repeat(+j.rating):"—"}</td><td>${j.mindset||"—"}</td><td>${j.tags||"—"}</td><td>${(j.thesis||"—").slice(0,60)}</td></tr>`;
+  }).sort((a,b)=>b.closed_at.localeCompare(a.closed_at));
+  if(!rows.length){ $("tradesStrategiesList").innerHTML='<div class="sub" style="padding:10px">No trades match these filters.</div>'; return; }
+  let h="<table><tr><th>Date</th><th>Structure</th><th>P&amp;L</th><th>Rating</th><th>Mindset</th><th>Tags</th><th>Thesis</th></tr>";
+  for(const t of rows){
+    const j=window._journalMap[t.symbol+"|"+t.expiry]||{};
+    const label = t.strategy ? `${t.symbol} ${t.strategy}${t.strikes?" "+t.strikes:""}` : t.symbol;
+    h+=`<tr><td>${t.closed_at.slice(0,10)}</td><td>${label}</td><td class="${cls(t.g)}">${fmtS(t.g)}</td><td>${j.rating?"★".repeat(+j.rating):"—"}</td><td>${j.mindset||"—"}</td><td>${j.tags||"—"}</td><td>${(j.thesis||"—").slice(0,50)}</td></tr>`;
+  }
   h+="</table>";
   $("tradesStrategiesList").innerHTML=h;
 }
-["tsRating","tsMindset","tsSymbol","tsTags"].forEach(id=>$(id).addEventListener("input",renderTradesStrategies));
+["tsResult","tsPeriod","tsRating","tsMindset","tsSymbol","tsTags"].forEach(id=>$(id).addEventListener("input",renderTradesStrategies));
 
 // ================= PORTFOLIO OVERVIEW (allocation) =================
 function renderAllocation(curA){
@@ -874,6 +939,65 @@ function renderAllocation(curA){
     statCard("Options",fmt(opt),pct(opt)+"% of portfolio",null)+
     statCard("Crypto",fmt(cry),pct(cry)+"% of portfolio",null);
   $("allocNote").textContent = tot? "" : "No account data yet.";
+}
+let trackerChart;
+function renderTracker(accts){
+  const range=localStorage.getItem("p_trackrange")||"ALL";
+  document.querySelectorAll("#trackerPills .pill").forEach(p=>p.classList.toggle("on",p.dataset.r===range));
+  const byDate={}; for(const a of accts){byDate[a.snapshot_date]=(byDate[a.snapshot_date]||0)+(parseFloat(a.total_value)||0);}
+  const now=new Date(); let cut=null;
+  if(range==="30d")cut=new Date(now-30*864e5); if(range==="90d")cut=new Date(now-90*864e5);
+  if(range==="6M")cut=new Date(now-183*864e5); if(range==="YTD")cut=new Date(now.getFullYear(),0,1);
+  const dts=Object.keys(byDate).sort().filter(d=>!cut||new Date(d)>=cut);
+  if(trackerChart)trackerChart.destroy();
+  trackerChart=new Chart($("trackerchart"),{type:"line",data:{labels:dts,datasets:[{data:dts.map(d=>Math.round(byDate[d])),borderColor:css("--acc"),borderWidth:2,pointRadius:3,tension:.25}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.parsed.y)}}},
+    scales:{x:{grid:{display:false},ticks:{color:css("--mut")}},y:{grid:{color:css("--grid")},ticks:{color:css("--mut"),callback:v=>fmt(v)}}}}});
+  if(dts.length>=2){
+    const first=byDate[dts[0]], last=byDate[dts[dts.length-1]], chg=last-first;
+    const pct=first!==0?(chg/first*100):0;
+    $("trackerChange").innerHTML=`<span class="${cls(chg)}">${fmtS(chg)} (${chg>=0?"+":""}${pct.toFixed(1)}%)</span> value change, selected period`;
+  } else {
+    $("trackerChange").textContent=`Collecting history — ${dts.length} snapshot(s) so far.`;
+  }
+}
+function mergedStockRows(cur,manualRaw){
+  const manualStocks=manualRaw.filter(r=>r.kind==="stock");
+  const real=cur.filter(r=>r.kind==="stock");
+  const realKeys=new Set(real.map(r=>r.symbol+"|"+r.account));
+  return real.concat(manualStocks.filter(r=>!realKeys.has(r.symbol+"|"+r.account)));
+}
+function renderHeatmap(cur,manualRaw){
+  const rows=mergedStockRows(cur,manualRaw);
+  const bySym={};
+  for(const r of rows){
+    const q=parseFloat(r.qty),avg=parseFloat(r.avg_price)||0,px=parseFloat(r.mark);
+    if(isNaN(px)||avg<=0)continue;
+    const e=bySym[r.symbol]=bySym[r.symbol]||{sym:r.symbol,mv:0,cost:0};
+    e.mv+=q*px; e.cost+=q*avg;
+  }
+  const tiles=Object.values(bySym).map(e=>({sym:e.sym,mv:e.mv,plp:(e.mv-e.cost)/e.cost*100})).sort((a,b)=>b.mv-a.mv);
+  if(!tiles.length){$("heatmapGrid").innerHTML='<div class="sub" style="padding:10px">No stock/ETF holdings in latest snapshot.</div>';return;}
+  const maxAbs=Math.max(...tiles.map(t=>Math.abs(t.plp)),1);
+  $("heatmapGrid").innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px;">${tiles.map(t=>{
+    const inten=Math.min(1,Math.abs(t.plp)/maxAbs);
+    const bg=t.plp>=0?`color-mix(in srgb, var(--grn) ${Math.round(18+inten*55)}%, var(--card))`:`color-mix(in srgb, var(--red) ${Math.round(18+inten*55)}%, var(--card))`;
+    return `<div style="background:${bg};border-radius:8px;padding:8px 6px;text-align:center;" title="${t.sym}: ${t.plp>=0?"+":""}${t.plp.toFixed(1)}%">
+      <div style="font-size:11px;font-weight:600;">${t.sym}</div>
+      <div class="${cls(t.plp)}" style="font-size:12px;margin-top:2px;">${t.plp>=0?"+":""}${t.plp.toFixed(1)}%</div>
+    </div>`;
+  }).join("")}</div>`;
+}
+function renderTopHoldings(cur,manualRaw){
+  const rows=mergedStockRows(cur,manualRaw).map(r=>{
+    const q=parseFloat(r.qty),avg=parseFloat(r.avg_price)||0,px=parseFloat(r.mark);
+    const mv=isNaN(px)?null:q*px;
+    return {sym:r.symbol,acct:NAMES[r.account]||r.account,mv,plp:(mv!=null&&avg>0)?(mv-q*avg)/(q*avg)*100:null};
+  }).filter(r=>r.mv!=null).sort((a,b)=>b.mv-a.mv).slice(0,8);
+  if(!rows.length){$("topHoldingsTable").innerHTML='<div class="sub" style="padding:10px">No holdings in latest snapshot.</div>';return;}
+  $("topHoldingsTable").innerHTML=`<table><tr><th>Symbol</th><th>Account</th><th>Value</th><th>P/L %</th></tr>${
+    rows.map(r=>`<tr><td>${r.sym}</td><td>${r.acct}</td><td>${fmt(r.mv)}</td><td class="${r.plp==null?"":cls(r.plp)}">${r.plp==null?"—":(r.plp>=0?"+":"")+r.plp.toFixed(1)+"%"}</td></tr>`).join("")
+  }</table>`;
 }
 
 // ================= OPTION STRATEGY: CALCULATOR =================
@@ -922,6 +1046,7 @@ const WIDGET_DEFAULTS={
   overview:[{id:"accounts",width:50,visible:true},{id:"performance",width:50,visible:true},{id:"networth",width:100,visible:true}],
   "trades-overview":[{id:"pl",width:100,visible:true},{id:"closedopts",width:50,visible:true},{id:"closedstks",width:50,visible:true}],
   calendar:[{id:"cal",width:100,visible:true}],
+  "portfolio-overview":[{id:"alloc",width:100,visible:true},{id:"tracker",width:100,visible:true},{id:"heatmap",width:67,visible:true},{id:"topholdings",width:33,visible:true}],
   "portfolio-options":[{id:"perf",width:100,visible:true},{id:"structs",width:100,visible:true}],
   "portfolio-stocks":[{id:"perf",width:100,visible:true},{id:"hold2005",width:50,visible:true},{id:"hold9521",width:50,visible:true}],
   "portfolio-crypto":[{id:"balances",width:100,visible:true}],
@@ -1262,6 +1387,11 @@ function initPills(pid,eid,list,key){
       statCard("In Crypto ••••8817",fmt(parseFloat(c8817.crypto_value)||0),"",null,`crypto_value field, Crypto account (••••8817). Source: accounts_history.csv. As of ${lastA||"—"}.`)+
       statCard("In Options ••••2005",fmt(parseFloat(c2005.crypto_value)||0),"staked ETH/SOL",null,`crypto_value field, Options account (••••2005). Source: accounts_history.csv. As of ${lastA||"—"}.`);
     renderAllocation(curA);
+    $("trackerPills").innerHTML=["30d","90d","6M","YTD","ALL"].map(r=>`<button class="pill" data-r="${r}">${r}</button>`).join(" ");
+    document.querySelectorAll("#trackerPills .pill").forEach(p=>p.onclick=()=>{localStorage.setItem("p_trackrange",p.dataset.r);renderTracker(accts);});
+    renderTracker(accts);
+    renderHeatmap(cur,manualRaw);
+    renderTopHoldings(cur,manualRaw);
     // net worth trend
     const byDate={}; for(const a of accts){byDate[a.snapshot_date]=(byDate[a.snapshot_date]||0)+(parseFloat(a.total_value)||0);}
     const dts=Object.keys(byDate).sort();

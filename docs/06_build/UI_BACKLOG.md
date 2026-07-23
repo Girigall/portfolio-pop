@@ -74,6 +74,12 @@ Tortuga audit fully addressed — every item from the steal-list is shipped or e
 - [x] "Trades by Tortuga" nav item evaluated and explicitly dropped — curated company/community content, no equivalent in a single-user product, audit's own "skip for MVP" recommendation
 - [x] M12's Options sub-tab sidebar-nesting reverted to in-page pills (self-corrected — Tortuga only nests 2 levels deep in its sidebar)
 
+## Shipped (M14) — filled in the tabs that felt thin vs Tortuga
+Pop agreed with the audit's "feels incomplete" critique and asked to close the gap specifically on tabs with real Tortuga reference behavior — not a blanket "make everything look done" pass. Read the actual Tortuga audit findings for each tab before building, and skipped the ones with no real data source (ETFs, Dividends, Crypto per-coin) or no real reference to copy (Option Strategy → Lab, which Tortuga's own audit never got to see — gated/404).
+- [x] Portfolio → Overview: period-selectable Portfolio Tracker chart, holdings heatmap (stocks/ETFs, P/L%-colored), Top Holdings summary table. No Time-Weighted Return — no deposit/withdrawal log exists to compute it honestly; substituted a plainly-labeled "value change" instead.
+- [x] Trades → Journal: leg detail shown in the journal panel, new risk-plan/close-roll-plan fields (`structure_journal.csv` header addition — file was empty of data rows, zero migration risk), Tags + Thesis snippet added to the list view.
+- [x] Trades → Strategies: reworked from journal-only (always empty until you journal something) to a real search over every closed trade, journal fields as optional overlay filters. Added Result (win/loss) and Period filters Tortuga has that we were missing; added P&L and Date columns to the result table.
+
 ## Design principles confirmed by Pop
 - Dark mode matters (eye strain) — default dark, toggle to light
 - No purple; palette = green profit / red loss / steel blue accent / neutral grays
