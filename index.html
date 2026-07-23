@@ -473,15 +473,6 @@ textarea { resize:vertical; }
 
     <section id="t-radar" hidden>
       <div class="pagehead"><h1>Radar</h1><div class="scope">Market scan across your Robinhood watchlist(s), checked against your rulebook</div></div>
-      <div class="card" style="margin-bottom:14px;">
-        <div class="sub" style="margin-bottom:8px;">Sync is optional, not automatic — the browser can't call Robinhood directly (no credentials are ever stored client-side). Queue a ticker here, then ask Claude "sync radar for &lt;TICKER&gt;" next time you're in a session; it pulls live data through the Robinhood connection and hands you an updated <code>radar_snapshot.csv</code>, same download-and-replace flow as everything else in this app.</div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:end;">
-          <div><label class="flbl">Ticker</label><input type="text" id="radarSyncSymbol" placeholder="AAPL" style="width:140px; text-transform:uppercase;"></div>
-          <button class="act" id="radarSyncBtn">+ Queue sync</button>
-        </div>
-        <div id="radarSyncOut" style="margin-top:10px;"></div>
-        <div id="radarSyncQueue" style="margin-top:12px;"></div>
-      </div>
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
           <span class="asof" id="radarAsOf"></span>
@@ -949,7 +940,7 @@ function renderRadar(){
   const rows=window._radarRaw||[];
   if(!rows.length){
     $("radarAsOf").textContent="no data yet";
-    $("radarTable").innerHTML='<div class="sub" style="padding:14px;">Waiting on the first data pull. Radar reads from <code>history/radar_snapshot.csv</code> — queue a ticker above to request one.</div>';
+    $("radarTable").innerHTML='<div class="sub" style="padding:14px;">Waiting on the first data pull. Radar reads from <code>history/radar_snapshot.csv</code>, refreshed by a scheduled task once it\'s set up.</div>';
     return;
   }
   const latestPulled=rows.map(r=>r.pulled_at).sort().pop();
@@ -976,26 +967,6 @@ function renderRadar(){
   }</table>`;
 }
 ["radarSymbol","radarTrend","radarMinIvr"].forEach(id=>$(id).addEventListener("input",renderRadar));
-
-function renderRadarSyncQueue(){
-  const rows=Object.values(window._radarSyncMap||{}).filter(r=>r.status!=="done").sort((a,b)=>b.requested_at.localeCompare(a.requested_at));
-  if(!rows.length){ $("radarSyncQueue").innerHTML=""; return; }
-  $("radarSyncQueue").innerHTML=`<div class="flbl" style="margin-bottom:6px;">Pending sync requests</div>
-    <div style="display:flex; gap:6px; flex-wrap:wrap;">${rows.map(r=>`<span class="badge">${r.symbol} <span style="opacity:.7">· ${new Date(r.requested_at).toLocaleDateString()}</span></span>`).join("")}</div>`;
-}
-$("radarSyncBtn").onclick=()=>{
-  const sym=$("radarSyncSymbol").value.toUpperCase().trim();
-  if(!sym){ $("radarSyncOut").innerHTML='<div class="sub">Enter a ticker first.</div>'; return; }
-  window._radarSyncMap[sym]={symbol:sym, requested_at:new Date().toISOString(), status:"pending"};
-  const merged=Object.values(window._radarSyncMap);
-  const cols=["symbol","requested_at","status"];
-  const blob=new Blob([csvify(merged,cols)],{type:"text/csv"});
-  const url=URL.createObjectURL(blob);
-  $("radarSyncOut").innerHTML=`<a class="act" style="text-decoration:none" href="${url}" download="radar_sync_requests.csv">⬇ Download updated radar_sync_requests.csv</a>
-    <div class="sub" style="margin-top:8px">Replace <code>05_Portfolio/history/radar_sync_requests.csv</code> in your Drive folder with this file, then ask Claude to sync ${sym} next time you're in a session.</div>`;
-  $("radarSyncSymbol").value="";
-  renderRadarSyncQueue();
-};
 
 // ================= PORTFOLIO OVERVIEW (allocation) =================
 function renderAllocation(curA){
@@ -1315,18 +1286,14 @@ function initPills(pid,eid,list,key){
   applyTheme(localStorage.getItem("p_theme")||"dark");
   renderAccentSwatches();
   try {
-    const [ledger, snaps, accts, manualRaw, journalRaw, radarRaw, radarSyncRaw] = await Promise.all([
+    const [ledger, snaps, accts, manualRaw, journalRaw, radarRaw] = await Promise.all([
       loadCSV("history/trades_ledger.csv"), loadCSV("history/positions_snapshots.csv"), loadCSV("history/accounts_history.csv"),
-      loadCSVSafe("history/manual_positions.csv"), loadCSVSafe("history/structure_journal.csv"), loadCSVSafe("history/radar_snapshot.csv"),
-      loadCSVSafe("history/radar_sync_requests.csv")]);
+      loadCSVSafe("history/manual_positions.csv"), loadCSVSafe("history/structure_journal.csv"), loadCSVSafe("history/radar_snapshot.csv")]);
     window._manualRaw = manualRaw;
     window._journalRaw = journalRaw;
     window._journalMap = Object.fromEntries(journalRaw.map(r=>[r.structure_key,r]));
     window._radarRaw = radarRaw;
-    window._radarSyncRaw = radarSyncRaw;
-    window._radarSyncMap = Object.fromEntries(radarSyncRaw.map(r=>[r.symbol,r]));
     renderRadar();
-    renderRadarSyncQueue();
     // ---- ledger analytics ----
     const trades = ledger.map(r=>({...r, g:parseFloat(r.realized_gain)||0, qty:parseFloat(r.quantity)||0}));
     optT = trades.filter(t=>t.asset_class==="option");
