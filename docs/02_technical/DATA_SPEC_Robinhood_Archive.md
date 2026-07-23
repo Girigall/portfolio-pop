@@ -107,7 +107,12 @@ One row per ticker per pull. Ticker universe = Pop's own Robinhood watchlist(s) 
 
 **Deliberately not in v1:** term structure, skew, VRP, bid-ask spread%. These need option-chain data across multiple expiries per ticker and real quant design/validation before they're trustworthy on a screen meant to inform real trades — not something to ship guessed. Logged as a fast-follow in `UI_BACKLOG.md`, not silently dropped.
 
-**Known gap as of 2026-07-23:** file is header-only. The courier mechanism for this file (a new, more-frequent scheduled task, separate from the Friday archive job) has not been created yet — creating a recurring automated job is its own explicit step requiring Pop's direct confirmation, not implied by approving the schema. The Robinhood MCP connector was also disconnected in the session this schema was designed, so the first live pull's exact field mapping is unverified — check `get_scanner_filter_specs`/`run_scan`'s actual output shape before the first real run, since Robinhood's own connector may already compute some of these values (reuse them rather than re-derive, same as `get_realized_pnl` is used as the golden P/L number instead of hand-summing trades).
+**Known gap as of 2026-07-23:** file is header-only. There is no recurring courier for this file — sync is Pop-initiated, not automatic (see §4.9). The Robinhood MCP connector was also disconnected in the session this schema was designed, so the first live pull's exact field mapping is unverified — check `get_scanner_filter_specs`/`run_scan`'s actual output shape before the first real run, since Robinhood's own connector may already compute some of these values (reuse them rather than re-derive, same as `get_realized_pnl` is used as the golden P/L number instead of hand-summing trades).
+
+### 4.9 `radar_sync_requests.csv` (M15, client-managed, upsert by key)
+`symbol · requested_at · status(pending/done)`
+
+One row per ticker, upserted by `symbol` — re-requesting the same ticker just refreshes `requested_at` and resets `status` to `pending`. Written via the Radar page's "Queue sync" button, download-and-replace like every other write path. This is the actual sync mechanism, and it's deliberately not automatic: the browser client has no credentials and cannot call the Robinhood connector directly (hard rule — no credentials in any client, archive, or docs). Queuing a symbol here is a request Claude picks up in a future interactive session with the connector active — pulls live data for the queued ticker(s), writes the result into `radar_snapshot.csv`, and marks the request `done`. Optional by design, never a background/automatic process.
 
 ## 5. Format standards (all files & UI)
 

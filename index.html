@@ -473,6 +473,15 @@ textarea { resize:vertical; }
 
     <section id="t-radar" hidden>
       <div class="pagehead"><h1>Radar</h1><div class="scope">Market scan across your Robinhood watchlist(s), checked against your rulebook</div></div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="sub" style="margin-bottom:8px;">Sync is optional, not automatic — the browser can't call Robinhood directly (no credentials are ever stored client-side). Queue a ticker here, then ask Claude "sync radar for &lt;TICKER&gt;" next time you're in a session; it pulls live data through the Robinhood connection and hands you an updated <code>radar_snapshot.csv</code>, same download-and-replace flow as everything else in this app.</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:end;">
+          <div><label class="flbl">Ticker</label><input type="text" id="radarSyncSymbol" placeholder="AAPL" style="width:140px; text-transform:uppercase;"></div>
+          <button class="act" id="radarSyncBtn">+ Queue sync</button>
+        </div>
+        <div id="radarSyncOut" style="margin-top:10px;"></div>
+        <div id="radarSyncQueue" style="margin-top:12px;"></div>
+      </div>
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
           <span class="asof" id="radarAsOf"></span>
@@ -913,27 +922,34 @@ function renderTradesStrategies(){
 ["tsResult","tsPeriod","tsRating","tsMindset","tsSymbol","tsTags"].forEach(id=>$(id).addEventListener("input",renderTradesStrategies));
 
 // ================= RADAR =================
-// Rulebook coverage is intentionally narrow: STRATEGY_RULEBOOK.md's S1-S4 chapters are all
-// SPX/SPXW-specific (index structures), and their numeric criteria (DTE, short delta, distance
-// from spot, credit/width) need an option chain + a chosen expiry, which a ticker-level scan
-// doesn't have. The one thing genuinely checkable from radar_snapshot.csv's columns is the
-// VIX-tier regime band S2-S4 share (same table, all three chapters). Everything else honestly
-// shows "no rulebook coverage" rather than forcing a match.
+// STRATEGY_RULEBOOK.md's S1-S4 numeric criteria (DTE, short delta, distance from spot,
+// credit/width) need an option chain + a chosen expiry, which a ticker-level scan doesn't have —
+// that part genuinely can't be evaluated here regardless of underlying. But VIX-tier regime
+// (S2-S4 share one table) describes the broad market, not a specific underlying — it applies to
+// any ticker being considered for these structures, not just SPX/SPXW. IV rank is per-ticker and
+// real. Both are shown; strike/width/delta selection still waits for actual chain data.
 function matchRadarStrategy(row,allRows){
-  if(!IDX.has(row.symbol)) return {label:"No rulebook coverage",detail:"STRATEGY_RULEBOOK.md's chapters are scoped to SPX/SPXW index structures — doesn't cover individual tickers yet."};
   const vixRow=allRows.find(r=>r.symbol==="VIX");
   const vix=vixRow?parseFloat(vixRow.price):NaN;
-  if(isNaN(vix)) return {label:"No VIX data",detail:"Add VIX to your Robinhood watchlist to see regime fit against S2-S4's VIX bands."};
-  if(vix<15) return {label:"VIX low — avoid/reduce",detail:`VIX ${vix.toFixed(1)}: below 15. S2-S4 say avoid or reduce size.`};
-  if(vix<20) return {label:"VIX acceptable",detail:`VIX ${vix.toFixed(1)}: 15-20 band. S2-S4 say acceptable.`};
-  if(vix<30) return {label:"VIX ideal",detail:`VIX ${vix.toFixed(1)}: 20-30 band. S2-S4 say ideal.`};
-  return {label:"VIX post-panic — size down",detail:`VIX ${vix.toFixed(1)}: above 30. S2-S4 say post-panic, trade smaller.`};
+  const ivr=parseFloat(row.iv_rank);
+  const parts=[];
+  let vixTier=null;
+  if(!isNaN(vix)){
+    if(vix<15){ vixTier="avoid/reduce"; parts.push(`VIX ${vix.toFixed(1)} — avoid/reduce (S2-S4)`); }
+    else if(vix<20){ vixTier="acceptable"; parts.push(`VIX ${vix.toFixed(1)} — acceptable (S2-S4)`); }
+    else if(vix<30){ vixTier="ideal"; parts.push(`VIX ${vix.toFixed(1)} — ideal (S2-S4)`); }
+    else { vixTier="post-panic"; parts.push(`VIX ${vix.toFixed(1)} — post-panic, size down (S2-S4)`); }
+  }
+  if(!isNaN(ivr)) parts.push(ivr>=50?`IV rank ${ivr} — elevated premium`:`IV rank ${ivr} — low premium`);
+  if(!parts.length) return {label:"No VIX/IV data",detail:"Add VIX to your watchlist and make sure IV rank is populated to see a rulebook read."};
+  const label = vixTier ? (vixTier==="ideal"||vixTier==="acceptable" ? "Regime "+vixTier : vixTier==="post-panic"?"Post-panic":"Avoid/reduce") : (ivr>=50?"Elevated IV":"Low IV");
+  return {label, detail:parts.join(" · ")+". Strike/width/delta still need actual option-chain data this scan doesn't have — confirm in Reader's Close/New Structure preview once you've picked contracts."};
 }
 function renderRadar(){
   const rows=window._radarRaw||[];
   if(!rows.length){
     $("radarAsOf").textContent="no data yet";
-    $("radarTable").innerHTML='<div class="sub" style="padding:14px;">Waiting on the first data pull. Radar reads from <code>history/radar_snapshot.csv</code>, refreshed by a separate scheduled task — not yet turned on. See DATA_SPEC §4.8 for status.</div>';
+    $("radarTable").innerHTML='<div class="sub" style="padding:14px;">Waiting on the first data pull. Radar reads from <code>history/radar_snapshot.csv</code> — queue a ticker above to request one.</div>';
     return;
   }
   const latestPulled=rows.map(r=>r.pulled_at).sort().pop();
@@ -960,6 +976,26 @@ function renderRadar(){
   }</table>`;
 }
 ["radarSymbol","radarTrend","radarMinIvr"].forEach(id=>$(id).addEventListener("input",renderRadar));
+
+function renderRadarSyncQueue(){
+  const rows=Object.values(window._radarSyncMap||{}).filter(r=>r.status!=="done").sort((a,b)=>b.requested_at.localeCompare(a.requested_at));
+  if(!rows.length){ $("radarSyncQueue").innerHTML=""; return; }
+  $("radarSyncQueue").innerHTML=`<div class="flbl" style="margin-bottom:6px;">Pending sync requests</div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap;">${rows.map(r=>`<span class="badge">${r.symbol} <span style="opacity:.7">· ${new Date(r.requested_at).toLocaleDateString()}</span></span>`).join("")}</div>`;
+}
+$("radarSyncBtn").onclick=()=>{
+  const sym=$("radarSyncSymbol").value.toUpperCase().trim();
+  if(!sym){ $("radarSyncOut").innerHTML='<div class="sub">Enter a ticker first.</div>'; return; }
+  window._radarSyncMap[sym]={symbol:sym, requested_at:new Date().toISOString(), status:"pending"};
+  const merged=Object.values(window._radarSyncMap);
+  const cols=["symbol","requested_at","status"];
+  const blob=new Blob([csvify(merged,cols)],{type:"text/csv"});
+  const url=URL.createObjectURL(blob);
+  $("radarSyncOut").innerHTML=`<a class="act" style="text-decoration:none" href="${url}" download="radar_sync_requests.csv">⬇ Download updated radar_sync_requests.csv</a>
+    <div class="sub" style="margin-top:8px">Replace <code>05_Portfolio/history/radar_sync_requests.csv</code> in your Drive folder with this file, then ask Claude to sync ${sym} next time you're in a session.</div>`;
+  $("radarSyncSymbol").value="";
+  renderRadarSyncQueue();
+};
 
 // ================= PORTFOLIO OVERVIEW (allocation) =================
 function renderAllocation(curA){
@@ -1279,14 +1315,18 @@ function initPills(pid,eid,list,key){
   applyTheme(localStorage.getItem("p_theme")||"dark");
   renderAccentSwatches();
   try {
-    const [ledger, snaps, accts, manualRaw, journalRaw, radarRaw] = await Promise.all([
+    const [ledger, snaps, accts, manualRaw, journalRaw, radarRaw, radarSyncRaw] = await Promise.all([
       loadCSV("history/trades_ledger.csv"), loadCSV("history/positions_snapshots.csv"), loadCSV("history/accounts_history.csv"),
-      loadCSVSafe("history/manual_positions.csv"), loadCSVSafe("history/structure_journal.csv"), loadCSVSafe("history/radar_snapshot.csv")]);
+      loadCSVSafe("history/manual_positions.csv"), loadCSVSafe("history/structure_journal.csv"), loadCSVSafe("history/radar_snapshot.csv"),
+      loadCSVSafe("history/radar_sync_requests.csv")]);
     window._manualRaw = manualRaw;
     window._journalRaw = journalRaw;
     window._journalMap = Object.fromEntries(journalRaw.map(r=>[r.structure_key,r]));
     window._radarRaw = radarRaw;
+    window._radarSyncRaw = radarSyncRaw;
+    window._radarSyncMap = Object.fromEntries(radarSyncRaw.map(r=>[r.symbol,r]));
     renderRadar();
+    renderRadarSyncQueue();
     // ---- ledger analytics ----
     const trades = ledger.map(r=>({...r, g:parseFloat(r.realized_gain)||0, qty:parseFloat(r.quantity)||0}));
     optT = trades.filter(t=>t.asset_class==="option");
