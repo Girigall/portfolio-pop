@@ -1,9 +1,9 @@
 {
- "last_run": "2026-07-17T21:36:21.439355+00:00",
+ "last_run": "2026-07-31T21:34:54Z",
  "rows_appended": {
   "ledger": 0,
-  "snapshots": 9,
-  "accounts": 2
+  "snapshots": 32,
+  "accounts": 5
  },
  "failures": [],
  "schema_version": 1
